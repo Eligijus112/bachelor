@@ -1,6 +1,7 @@
 download.terror <- function(years, path){
   
   files <- list.files(path)
+  if(length(grep(unique(files), pattern = "raw data"))!=length(years)){
   
     for(year in years){
       cat('downloading year...', year, "\n")
