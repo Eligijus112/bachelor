@@ -1,0 +1,27 @@
+---
+title: "Bakalauras"
+author: "Eligijus Bujokas"
+date: "January 22, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(plyr)
+library(emibase)
+source('functions.R')
+```
+
+```{r constants, include=FALSE}
+years.to.survey <- 1970:2015
+```
+
+```{r data download and reading it, include=FALSE}
+# we will save this data to the 'data folder'
+download.terror(years.to.survey) 
+
+
+
+```
+
+

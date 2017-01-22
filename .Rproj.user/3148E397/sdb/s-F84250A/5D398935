@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "download.terror <- function(years){\n\n  for(year in years){\n    cat('downloading year...', year, \"\\n\")\n    url <- paste0('http://www.start.umd.edu/gtd/search/ResultsCSV.aspx?csv=1&casualties_type=&casualties_max=&start_year=', \n                  year, '&start_month=1&start_day=1&end_year=', year, '&end_month=12&end_day=31')\n    download.file(url, paste0(\"data/raw data\", year, \".csv\"), \"internal\", quiet = FALSE, mode = \"w\",\n                              cacheOK = TRUE,\n                              extra = getOption(\"download.file.extra\"))\n  }\n\n}",
+    "created" : 1485092651189.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3972350251",
+    "id" : "5D398935",
+    "lastKnownWriteTime" : 1485054126,
+    "last_content_update" : 1485054126,
+    "path" : "C:/Users/Eligijus/Desktop/bakalauras/bachelor-thesis/functions.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "---\ntitle: \"Bakalauras\"\nauthor: \"Eligijus Bujokas\"\ndate: \"January 22, 2017\"\noutput: pdf_document\n---\n\n```{r setup, include=FALSE}\nlibrary(dplyr)\nlibrary(plyr)\nlibrary(emibase)\nsource('functions.R')\n```\n\n```{r constants, include=FALSE}\nyears.to.survey <- 1970:2015\n```\n\n```{r data download and reading it, include=FALSE}\n# we will save this data to the 'data folder'\ndownload.terror(years.to.survey) \n\n\n\n```\n\n\n",
+    "created" : 1485092654436.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "152878798",
+    "id" : "55CEAF78",
+    "lastKnownWriteTime" : 1485092712,
+    "last_content_update" : 1485092712190,
+    "path" : "C:/Users/Eligijus/Desktop/bakalauras/bachelor-thesis/code.Rmd",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
