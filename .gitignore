@@ -13,9 +13,20 @@ $RECYCLE.BIN/
 *.msi
 *.msm
 *.msp
+.temp
 
 # Windows shortcuts
 *.lnk
+
+# R objects
+
+*.Rproj.user
+*.Rproj.
+*.RData
+plots/*
+*.Rhistory
+temp/*
+data/*
 
 # =========================
 # Operating System Files
