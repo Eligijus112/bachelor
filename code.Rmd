@@ -1,8 +1,10 @@
 ---
-title: "Bakalauras"
-author: "Eligijus Bujokas"
-date: "January 22, 2017"
-output: pdf_document
+output:
+  pdf_document:
+    fig_caption: yes
+    number_sections: no
+   # toc: true
+#bibliography: library.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -13,13 +15,40 @@ library(plotrix)
 source('functions.R')
 ```
 
+\vskip 20pt
+\centerline{\bf \large VILNIUS UNIVERSITY}
+\bigskip
+\centerline{\large \textbf{FACULTY OF MATHEMATICS AND INFORMATICS}}
+\vskip 120pt
+\centerline{\bf \Large \textbf{BACHELOR THESIS}}
+\vskip 50pt
+\begin{center}
+{\bf \LARGE Global terrorism and the economy}
+
+\vspace{4mm}
+
+\end{center}
+\vskip 120pt
+\centerline{\Large Eligijus Bujokas}
+\vskip 120pt
+\centerline{\large \textbf{VILNIUS (2016.12.07)}}
+
+\newpage
+
+
+
+
+\tableofcontents
+
+\newpage
+
 ```{r constants, include=FALSE}
 years.to.survey <- 1970:2015
 ```
 
-```{r data download and reading it, include=FALSE}
+```{r data download and reading it, include=FALSE, echo=F}
 # we will save this data to the 'data folder'
-download.terror(years.to.survey) 
+download.terror(years.to.survey, "data/") 
 dt <- read.terror("data/")
 ```
 

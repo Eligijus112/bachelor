@@ -29,6 +29,8 @@ temp/*
 data/*
 *.Rproj
 
+
+*.pdf
 # =========================
 # Operating System Files
 # =========================
