@@ -27,6 +27,7 @@ plots/*
 *.Rhistory
 temp/*
 data/*
+*.Rproj
 
 # =========================
 # Operating System Files

@@ -9,6 +9,7 @@ output: pdf_document
 library(dplyr)
 library(plyr)
 library(emibase)
+library(plotrix)
 source('functions.R')
 ```
 
@@ -22,21 +23,31 @@ download.terror(years.to.survey)
 dt <- read.terror("data/")
 ```
 
-```{r descriptive statistics, include=FALSE}
+```{r descriptive statistics, include=FALSE, echo=F, warning=F}
 # we will save this data to the 'data folder'
 summary(dt$Fatalities) ## As we can see there is a huge incident involving 1382 deaths
 summary(dt$Injured)    ## The mean of injured people is higher than those that were killed. The biggest incident is involving 4000 people
 dt[which(dt$Fatalities==max(dt$Fatalities, na.rm=T)), ] # The deadliest attack was the infamous 9/11 attack
 dt[which(dt$Injured==max(dt$Injured, na.rm=T)), ]       # The most injuries was caused by the attack in Kenya in 1998
 
+sum(dt$Injured, na.rm=T) # The total people injured between 1970 and 2015 worldwide is 125718
+sum(dt$Fatalities, na.rm=T) # The total people killed between 1970 and 2015 worldwide is 97233
+
+
 ## Creating a pie chart
 
-dim(dt[dt$Fatalities==0, ])[1]*100/dim(dt)[1] # More than half the attacks were not lethal
-dim(dt[dt$Fatalities==1, ])[1]*100/dim(dt)[1] # 26 percent of the attacks resulted in a death of 1
-dim(dt[dt$Fatalities>1, ])[1]*100/dim(dt)[1] # 26 percent of the attacks resulted in a death of 1
+pdf(file = "plots/Injuries and deaths pie chart.pdf", width = 15, height = 10)
+par(mfrow=c(2,1))
 
+pie.chart(dt$Fatalities, c(0, 1, 5, 100), cols=c("dodgerblue1", "darkslategray2", "gray48", "khaki2"), 
+          title = "Fatalities")
 
+pie.chart(dt$Injured, c(0, 1, 5, 100), cols=c("dodgerblue1", "darkslategray2", "gray48", "khaki2"), 
+          title = "Injuries")
+dev.off()
 ```
+
+
 
 
 
