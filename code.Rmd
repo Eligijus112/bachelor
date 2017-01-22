@@ -19,9 +19,24 @@ years.to.survey <- 1970:2015
 ```{r data download and reading it, include=FALSE}
 # we will save this data to the 'data folder'
 download.terror(years.to.survey) 
+dt <- read.terror("data/")
+```
 
+```{r descriptive statistics, include=FALSE}
+# we will save this data to the 'data folder'
+summary(dt$Fatalities) ## As we can see there is a huge incident involving 1382 deaths
+summary(dt$Injured)    ## The mean of injured people is higher than those that were killed. The biggest incident is involving 4000 people
+dt[which(dt$Fatalities==max(dt$Fatalities, na.rm=T)), ] # The deadliest attack was the infamous 9/11 attack
+dt[which(dt$Injured==max(dt$Injured, na.rm=T)), ]       # The most injuries was caused by the attack in Kenya in 1998
+
+## Creating a pie chart
+
+dim(dt[dt$Fatalities==0, ])[1]*100/dim(dt)[1] # More than half the attacks were not lethal
+dim(dt[dt$Fatalities==1, ])[1]*100/dim(dt)[1] # 26 percent of the attacks resulted in a death of 1
+dim(dt[dt$Fatalities>1, ])[1]*100/dim(dt)[1] # 26 percent of the attacks resulted in a death of 1
 
 
 ```
+
 
 

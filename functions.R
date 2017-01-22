@@ -10,3 +10,31 @@ download.terror <- function(years){
   }
 
 }
+
+read.terror <- function(path){
+  raw.data <- data.frame()
+  files    <- list.files(path) 
+  
+  for(file in files){
+    duom <- read.csv(paste0(path, file), stringsAsFactors = F)
+    raw.data <- rbind.fill(raw.data, duom)    
+  }
+  
+  ## Formating in a nice way
+  raw.data[raw.data==""] <- NA
+  na.index <- which(apply(raw.data, 1, function(x) all(is.na(x))))
+  if(length(na.index)!=0) raw.data <- raw.data[-na.index, ]
+  raw.data <- raw.data[, c("DATE", "COUNTRY", "CITY", "PERPETRATOR.1", "FATALITIES", "INJURED", "TARGET.TYPE.1", "ATTACK.TYPE.1",
+                           "WEAPON.TYPE.1")]
+  raw.data <- rename(raw.data, replace = c("DATE" = "Date", "CITY"="City", 
+                                           "COUNTRY" = "Country", "PERPETRATOR.1"="Perpetrator",
+                                           "FATALITIES"="Fatalities", "INJURED"="Injured", 
+                                           "TARGET.TYPE.1"="Target type", "ATTACK.TYPE.1" = "Attack type",
+                                           "WEAPON.TYPE.1"="Weapon type"))
+  raw.data$Fatalities <- raw.data$Fatalities %>% as.numeric()
+  raw.data$Injured    <- raw.data$Injured %>% as.numeric()
+  return(raw.data)
+}
+
+
+
