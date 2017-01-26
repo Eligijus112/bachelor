@@ -39,6 +39,7 @@ read.terror <- function(path){
                                            "WEAPON.TYPE.1"="Weapon type"))
   raw.data$Fatalities <- raw.data$Fatalities %>% as.numeric()
   raw.data$Injured    <- raw.data$Injured %>% as.numeric()
+  raw.data <- raw.data[complete.cases(raw.data), ]
   return(raw.data)
 }
 
@@ -86,9 +87,73 @@ pie.chart <- function(data, slices, cols=NULL, title){
     }
   }
   
-  pie3D(x = for.pie, col=cols, labels= label, main = title, labelcex = 1.2, explode = 0.1, radius=.9, 
-        labelrad=1.4)
+  pie3D(x = for.pie, col=cols, labels= label, main = title, labelcex = 1.2, explode = 0.1, radius=.9)
   legendary2(round(for.pie*100, 1), cols, cex=1)
 }
 
 
+createdir <- function (dir) 
+{
+  if (file.exists(dir)) {
+    if (!file.info(dir)$isdir) {
+      dir.create(dir, recursive = TRUE)
+      cat("\n Created  directory ", dir, "\n")
+    }
+  }
+  else {
+    dir.create(dir, recursive = TRUE)
+    cat("\n Created  directory ", dir, "\n")
+  }
+}
+
+
+aggregate.terror <- function(dat, freq="daily"){
+  
+  # This function is very specific to this project
+  
+  # freq can obtain three values: daily, monthly and yearly
+  
+  # dt - data frame which we will be aggregating
+  
+  dates <- unique(dat$Date)
+  
+  if(freq=="monthly"){
+    
+    dates <- substr(dates, 1, 7) %>% unique()
+    
+  }
+  
+  if(freq=="yearly"){
+    
+    dates <- substr(dates, 1, 4) %>% unique()
+    
+  }
+  
+    result.table <- matrix(ncol=3, nrow=length(dates)) %>% as.data.frame()
+    colnames(result.table) <- c("Date", "Injured", "Killed")
+    result.table[, 1] <- dates
+    
+    for(d in dates){
+      cat("calculating...", d, "\n")
+      result.table[result.table$Date==d, "Injured"] <- dat[grep(d, dat$Date), "Injured"] %>% sum(na.rm=T)
+      result.table[result.table$Date==d, "Killed"]  <- dat[grep(d, dat$Date), "Fatalities"] %>% sum(na.rm=T)
+    }
+  
+  return(result.table)
+}
+
+grid.frame <- function (x = NULL, y, grid.lty = "dotted", grid.col = "lightgray", 
+          xlab = "", ylab = "", ...) 
+{
+  if (is.null(x)) {
+    if (is.null(dim(y))) {
+      x <- 1:length(y)
+    }
+    else {
+      x <- 1:nrow(y)
+    }
+  }
+  matplot(x, y, type = "n", xlab = xlab, ylab = ylab, ...)
+  grid(col = grid.col, lty = grid.lty)
+  box()
+}
