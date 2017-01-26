@@ -50,6 +50,7 @@ years.to.survey <- 1970:2015
 # we will save this data to the 'data folder'
 download.terror(years.to.survey, "data/") 
 dt <- read.terror("data/")
+dt <- arrange(dt, Date)
 ```
 
 ```{r descriptive statistics, include=FALSE, echo=F, warning=F}
@@ -64,16 +65,40 @@ sum(dt$Fatalities, na.rm=T) # The total people killed between 1970 and 2015 worl
 
 
 ## Creating a pie chart
-
+createdir("plots")
 pdf(file = "plots/Injuries and deaths pie chart.pdf", width = 15, height = 10)
-par(mfrow=c(2,1))
 
-pie.chart(dt$Fatalities, c(0, 1, 5, 100), cols=c("dodgerblue1", "darkslategray2", "gray48", "khaki2"), 
+pie.chart(dt$Fatalities, c(0, 1, 5, 100), cols=c("dodgerblue1", "orchid4", "gray48", "peru"), 
           title = "Fatalities")
 
-pie.chart(dt$Injured, c(0, 1, 5, 100), cols=c("dodgerblue1", "darkslategray2", "gray48", "khaki2"), 
+pie.chart(dt$Injured, c(0, 1, 5, 100), cols=c("dodgerblue1", "orchid4", "gray48", "peru"), 
           title = "Injuries")
 dev.off()
+
+## Overall trend
+
+pdf(file = "plots/daily monthly yearly casualties.pdf", width = 15, height = 10)
+
+# excluding daily because of long calculation times
+
+for(fr in c("monthly", "yearly")){
+  data.to.plot <- aggregate.terror(dt, freq = fr)
+  
+  points <- cbind(data.to.plot$Injured, data.to.plot$Killed)
+  
+  time.span <- seq(years.to.survey[1],
+                   years.to.survey[length(years.to.survey)],
+                   length.out = dim(data.to.plot)[1])
+  
+  grid.frame(x = time.span, y = points, grid.lty = 2, grid.col = "royalblue")
+  
+  matplot(x= time.span, y=points, add=T, type = "o", pch=20, lwd = 2, lty = 1, cex=1, 
+              col=c("firebrick3", "dodgerblue3"))
+  legendary2(c("Injured", "Killed"), col=c("firebrick3", "dodgerblue3"))
+  mtext(paste("Frequency is", fr), line=1, adj = 0, font = 2, cex = 1.25, col="darkslateblue")
+}
+dev.off()
+
 ```
 
 
