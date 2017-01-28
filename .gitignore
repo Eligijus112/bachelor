@@ -28,9 +28,10 @@ plots/*
 temp/*
 data/*
 *.Rproj
-
-
+output/*
+input/*
 *.pdf
+
 # =========================
 # Operating System Files
 # =========================
