@@ -173,3 +173,30 @@ grid.frame <- function (x = NULL, y, grid.lty = "dotted", grid.col = "lightgray"
   grid(col = grid.col, lty = grid.lty)
   box()
 }
+
+statistics.middle.east <- function(start.year){
+  url <- 'https://en.wikipedia.org/wiki/List_of_modern_conflicts_in_the_Middle_East'
+  terror.table <- getURL(url)
+  write.table(terror.table, file="output/wiki page.txt") # it is easier to navigate in txt form
+  
+
+  as.text <- read.table("output/wiki page.txt", sep="\t") %>% apply(1, as.character)
+  as.text[as.text==""] <- NA
+  as.text <- as.text[which(!is.na(as.text))] %>% paste0(as.text, collapse="")
+  index.start <- gregexpr("wikitable sortable", as.text)[[1]] %>% as.numeric()
+  index.end   <- gregexpr("2016_Turkish_coup", as.text)[[1]] %>% as.numeric() %>% max()
+  index.end   <- index.end + 100
+  
+  as.text <- substr(as.text, index.start, index.end)
+  
+  ## Greping the positions of the links
+  
+  link.indexes <- gregexpr("/wiki/", as.text)[[1]] %>% as.numeric()
+  for(link in link.indexes){
+    cat(substr(as.text, link, link + 40), "\n")
+  }
+  
+}
+
+
+

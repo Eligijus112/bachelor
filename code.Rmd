@@ -141,7 +141,32 @@ for(reg in unique(regions$Region)){
   }
 }
 dev.off()
+
 ```
+
+```{r data for logistics model, include=FALSE, echo=F}
+# In this section we will be creating a data frame for a logistic model
+
+dt.log <- ddply(dt, ~Country, function(xframe){
+  xframe <<- xframe
+  numb.of.incidents <- dim(xframe)[1]
+  xframe$numb <- numb.of.incidents
+  return(xframe[nrow(xframe), ])
+})
+
+dt.log <- dt.log[, c("Country", "numb")]
+
+# as one of the regressors we will be using a dummy variable whether a country was involved in some sort of conflict in the middle east
+
+
+```
+
+
+
+
+
+
+
 
 
 
