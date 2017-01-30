@@ -39,8 +39,24 @@ read.terror <- function(path){
                                            "WEAPON.TYPE.1"="Weapon type"))
   raw.data$Fatalities <- raw.data$Fatalities %>% as.numeric()
   raw.data$Injured    <- raw.data$Injured %>% as.numeric()
-  raw.data <- raw.data[complete.cases(raw.data), ]
-  return(raw.data)
+  
+  # finding unique rows
+  
+  raw.data$key <- paste0(raw.data$Date, "+", raw.data$Country, "+", raw.data$City, "+", raw.data$Fatalities, "+", raw.data$Injured)
+  
+  unique.frame <- ddply(raw.data, ~key, function(xframe){
+    xframe <<- xframe
+    # print(xframe$key)
+    return(xframe[nrow(xframe), ])
+  })
+  
+  na.index <- which(apply(unique.frame, 1, function(x){ all(is.na(x)) }))
+  if(length(na.index)!=0) unique.frame <- unique.frame[-na.index, ]
+  # Returning results
+  
+  unique.frame$key <- NULL
+  
+  return(unique.frame)
 }
 
 legendary2 <- function (legend, col, line = 0, side = 3, adj = 1, cex = 0.8, 
@@ -87,7 +103,7 @@ pie.chart <- function(data, slices, cols=NULL, title){
     }
   }
   
-  pie3D(x = for.pie, col=cols, labels= label, main = title, labelcex = 1.2, explode = 0.1, radius=.9)
+  pie3D(x = for.pie, col=cols, labels= label, main = title, labelcex = 1.2, explode = 0.1, radius=.9, labelrad = 1.6)
   legendary2(round(for.pie*100, 1), cols, cex=1)
 }
 
@@ -157,3 +173,30 @@ grid.frame <- function (x = NULL, y, grid.lty = "dotted", grid.col = "lightgray"
   grid(col = grid.col, lty = grid.lty)
   box()
 }
+
+statistics.middle.east <- function(start.year){
+  url <- 'https://en.wikipedia.org/wiki/List_of_modern_conflicts_in_the_Middle_East'
+  terror.table <- getURL(url)
+  write.table(terror.table, file="output/wiki page.txt") # it is easier to navigate in txt form
+  
+
+  as.text <- read.table("output/wiki page.txt", sep="\t") %>% apply(1, as.character)
+  as.text[as.text==""] <- NA
+  as.text <- as.text[which(!is.na(as.text))] %>% paste0(as.text, collapse="")
+  index.start <- gregexpr("wikitable sortable", as.text)[[1]] %>% as.numeric()
+  index.end   <- gregexpr("2016_Turkish_coup", as.text)[[1]] %>% as.numeric() %>% max()
+  index.end   <- index.end + 100
+  
+  as.text <- substr(as.text, index.start, index.end)
+  
+  ## Greping the positions of the links
+  
+  link.indexes <- gregexpr("/wiki/", as.text)[[1]] %>% as.numeric()
+  for(link in link.indexes){
+    cat(substr(as.text, link, link + 40), "\n")
+  }
+  
+}
+
+
+
