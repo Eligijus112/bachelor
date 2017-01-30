@@ -184,16 +184,26 @@ statistics.middle.east <- function(start.year){
   as.text[as.text==""] <- NA
   as.text <- as.text[which(!is.na(as.text))] %>% paste0(as.text, collapse="")
   index.start <- gregexpr("wikitable sortable", as.text)[[1]] %>% as.numeric()
-  index.end   <- gregexpr("2016_Turkish_coup", as.text)[[1]] %>% as.numeric() %>% max()
+  index.end   <- gregexpr("2016_Turkish_coup", as.text)[[1]] %>% as.numeric() %>% max() # the last known conflict
   index.end   <- index.end + 100
   
   as.text <- substr(as.text, index.start, index.end)
-  
   ## Greping the positions of the links
-  
+  full.links <- as.character()
   link.indexes <- gregexpr("/wiki/", as.text)[[1]] %>% as.numeric()
   for(link in link.indexes){
-    cat(substr(as.text, link, link + 40), "\n")
+    char <- (substr(as.text, link, link + 6) %>% strsplit(split=""))[[1]]
+    char <- char[length(char)]
+    i <-  1
+    while(char!=' ' && i < 100){
+      # cat(substr(as.text, link + i + 6, link + 6 + i), "\n")
+      char <- substr(as.text, link + i + 6, link + 6 + i)
+      i <- i + 1  
+    }
+    
+    end.index <- i - 1
+    full.link <- substr(as.text, link, link + end.index + 4)
+    full.links <- rbind(full.links, full.link)
   }
   
 }
