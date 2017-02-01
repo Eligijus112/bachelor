@@ -48,6 +48,7 @@ createdir("plots")
 createdir("input")
 createdir("data")
 createdir("output")
+createdir("html files")
 ```
 
 ```{r data download and reading it, include=FALSE, echo=F}
@@ -157,7 +158,7 @@ dt.log <- ddply(dt, ~Country, function(xframe){
 
 dt.log <- dt.log[, c("Country", "numb")]
 
-# as one of the regressors we will be using a dummy variable whether a country was involved in some sort of conflict in the middle east
+# as one of the regressors we will be using a dummy variable whether a country was involved in some sort of conflict in the middle east or not
 
 
 ```

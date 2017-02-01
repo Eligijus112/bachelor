@@ -31,6 +31,7 @@ data/*
 output/*
 input/*
 *.pdf
+html files/*
 
 # =========================
 # Operating System Files

@@ -206,6 +206,38 @@ statistics.middle.east <- function(start.year){
     full.links <- rbind(full.links, full.link)
   }
   
+  ## deleting unwanted links
+  
+  bad.words <- c("File", "Wikipedia", "Special:", "Portal:", "Privacy_policy", "Category:", "Template:",
+                 "Google_Books", "Lists_of_wars")
+  
+  for(word in bad.words){
+    if(length(grep(word, full.links))!=0){
+      full.links <- full.links[-grep(word, full.links)]
+    }
+  }
+  
+  # Searching through the links
+  
+  for(link in full.links){
+    url <- paste0("https://en.wikipedia.org", link)
+    html <- getURL(url)
+    write.table(html, file=paste0("html files",
+                                  substr(link, start = 6, stop=length(strsplit(link, split="")[[1]])),
+                                  ".txt"))
+    as.text <- read.table(paste0("html files",
+                                  substr(link, start = 6, stop=length(strsplit(link, split="")[[1]])),
+                                  ".txt"), sep="\t") %>% apply(1, as.character)
+    
+    # The list of countries is between between the titles "Belligerents" and "Commanders and leaders"
+    as.text[as.text==""] <- NA
+    as.text <- as.text[which(!is.na(as.text))] %>% paste0(as.text, collapse="")
+    
+    index.start <- gregexpr(">Belligerents</th>", as.text)[[1]] %>% as.numeric() %>% min()
+    index.end   <- gregexpr(">Commanders and leaders</th>", as.text)[[1]] %>% as.numeric() %>% min() 
+    as.text <- substr(as.text, index.start, index.end)
+  }
+  
 }
 
 
