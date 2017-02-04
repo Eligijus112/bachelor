@@ -34,7 +34,7 @@ grid.frame <- function (x = NULL, y, grid.lty = "dotted", grid.col = "lightgray"
 
 
 MASplineVector <-  function (x, n = 4, k = 0.7, step = 4, epsilon = NA, method = "monoH.FC", 
-                             n0 = n, n1 = n, k0 = k, k1 = k, plot = F) 
+          n0 = n, n1 = n, k0 = k, k1 = k, plot = F) 
 {
   forplot1 <- x
   require(TTR)
@@ -222,7 +222,7 @@ download.terror <- function(years, path){
   
   files <- list.files(paste0(path, "terror/"))
   if(length(grep(unique(files), pattern = "terror"))!=length(years)){
-    
+  
     for(year in years){
       cat('downloading year...', year, "\n")
       url <- paste0('http://www.start.umd.edu/gtd/search/ResultsCSV.aspx?csv=1&casualties_type=&casualties_max=&start_year=', 
@@ -301,15 +301,15 @@ aggregate.terror <- function(dat, freq="daily"){
     
   }
   
-  result.table <- matrix(ncol=3, nrow=length(dates)) %>% as.data.frame()
-  colnames(result.table) <- c("Date", "Injured", "Killed")
-  result.table[, 1] <- dates
-  
-  for(d in dates){
-    cat("calculating...", d, "\n")
-    result.table[result.table$Date==d, "Injured"] <- dat[grep(d, dat$Date), "Injured"] %>% sum(na.rm=T)
-    result.table[result.table$Date==d, "Killed"]  <- dat[grep(d, dat$Date), "Fatalities"] %>% sum(na.rm=T)
-  }
+    result.table <- matrix(ncol=3, nrow=length(dates)) %>% as.data.frame()
+    colnames(result.table) <- c("Date", "Injured", "Killed")
+    result.table[, 1] <- dates
+    
+    for(d in dates){
+      cat("calculating...", d, "\n")
+      result.table[result.table$Date==d, "Injured"] <- dat[grep(d, dat$Date), "Injured"] %>% sum(na.rm=T)
+      result.table[result.table$Date==d, "Killed"]  <- dat[grep(d, dat$Date), "Fatalities"] %>% sum(na.rm=T)
+    }
   
   return(result.table)
 }
@@ -321,7 +321,7 @@ aggregate.terror.by.country <- function(dat){
   # dt - data frame which we will be aggregating
   
   dates <- unique(dat$Date)
-  
+    
   dates <- substr(dates, 1, 4) %>% unique()
   
   ## calculating number of incidents  
@@ -429,7 +429,7 @@ download.tourism <- function(path, write=T){
     return(x)
   }) %>% t()
   
-  # melting the data frame
+    # melting the data frame
   
   melted.data <- melt(raw.data)
   melted.data <- melted.data[, c("CountryName", "variable", "value")]
@@ -450,7 +450,7 @@ download.economy <- function(path, check=T) {
     
     return(read.csv(paste0(path,"economy/raw economic data.csv"), stringsAsFactor=F))
   } else{
-    
+  
     decode <- read.csv("input/decoder.csv", stringsAsFactors = F)
     if(dim(decode)[1]<1){
       print("Decoder is missing. Please download tourism data first")
@@ -465,50 +465,50 @@ download.economy <- function(path, check=T) {
         cat("Downloading...", decode[decode$CountryCode==cd, "CountryName"], "\n")
         url <- paste0("http://api.worldbank.org/v2/en/country/",cd,"?downloadformat=csv")
         
-        # we will give the downloader and unziper 5 chances to work
-        
-        j <- 1
-        
-        while( j <= 5 ){
-          err <- tryCatch({
-            download.file(url, destfile = paste0(path, "economy/tmp.zip"), mode='wb')
-            unzip(paste0(path, "economy/tmp.zip"), exdir = paste0(path, "economy"))
-          },
-          error = function(e){
-            j <- j + 1
-            return("ERROR")
-          })
+          # we will give the downloader and unziper 5 chances to work
           
-          if(err[1]!="ERROR"){ 
-            break
-          } else { j <- j + 1}
+          j <- 1
+          
+          while( j <= 5 ){
+            err <- tryCatch({
+              download.file(url, destfile = paste0(path, "economy/tmp.zip"), mode='wb')
+              unzip(paste0(path, "economy/tmp.zip"), exdir = paste0(path, "economy"))
+              },
+              error = function(e){
+                j <- j + 1
+                return("ERROR")
+              })
+            
+            if(err[1]!="ERROR"){ 
+              break
+            } else { j <- j + 1}
+          }
+        
+          # we find the file with the appropriate name
+          
+          name  <- paste0("API_" ,cd ,"_DS2_en_csv_v2.csv")
+          
+          raw.data <- read.csv(paste0(path, "economy/", name), header=F, stringsAsFactors = F)
+          
+          # we tidy the data up
+          
+          raw.data <- raw.data[-c(1:2), ]
+          
+          colnames(raw.data) <- as.character(raw.data[1, ])
+          raw.data <- raw.data[-1, ]
+          raw.data <- plyr::rename(raw.data, c("Indicator Name" = "Indicator"))
+          colnames(raw.data) <- gsub(" ", "", colnames(raw.data))
+          raw.data <- raw.data[, -grep("NA", colnames(raw.data))]
+          
+          big.data <- rbind(big.data, raw.data)
+          
+          # removing the unnecessary files
+          
+          files <- setdiff(list.files(paste0(path, "economy/")), "tmp.zip")
+          file.remove(paste0(path, "economy/", files[1:length(files)]))
+          
         }
-        
-        # we find the file with the appropriate name
-        
-        name  <- paste0("API_" ,cd ,"_DS2_en_csv_v2.csv")
-        
-        raw.data <- read.csv(paste0(path, "economy/", name), header=F, stringsAsFactors = F)
-        
-        # we tidy the data up
-        
-        raw.data <- raw.data[-c(1:2), ]
-        
-        colnames(raw.data) <- as.character(raw.data[1, ])
-        raw.data <- raw.data[-1, ]
-        raw.data <- plyr::rename(raw.data, c("Indicator Name" = "Indicator"))
-        colnames(raw.data) <- gsub(" ", "", colnames(raw.data))
-        raw.data <- raw.data[, -grep("NA", colnames(raw.data))]
-        
-        big.data <- rbind(big.data, raw.data)
-        
-        # removing the unnecessary files
-        
-        files <- setdiff(list.files(paste0(path, "economy/")), "tmp.zip")
-        file.remove(paste0(path, "economy/", files[1:length(files)]))
-        
       }
-    }
     
     write.csv(big.data, paste0(path,"economy/raw economic data.csv"), na="", row.names=F)
     
@@ -549,22 +549,6 @@ make.economy.great.again <- function(dt){
 }
 
 ## functions to download OECD data for annual hours worked
-
-get_decoder <- function(...){
-  
-  url <- 'http://www.oecd.org/migration/mig/34107835.xls'
-  download.file(url, paste0(path, "OECD/decoder.xls"), "internal", quiet = FALSE, mode = "wb",
-                cacheOK = TRUE,
-                extra = getOption("download.file.extra"))
-  dec <- read_excel(paste0(path, "OECD/decoder.xls"), sheet=1)
-  dec$CODE <- gsub("CSFR-", "", dec$CODE)
-  dec$CODE <- gsub("FYUG-", "", dec$CODE)
-  dec$CODE <- gsub("KOREA-", "", dec$CODE)
-  dec$CODE <- gsub("USSR-", "", dec$CODE)
-  dec <- dec %>% as.data.frame(dec)
-  
-  return(dec)
-}
 
 get_datasets <- function(...) {
   
@@ -623,6 +607,17 @@ get_dataset <- function(dataset, filter = NULL, start_time = NULL, end_time = NU
 }
 
 
+download.work.time <- function(path){
+  
+  createdir(paste0(path, "OECD"))
+  url <- 'https://stats.oecd.org/sdmx-json/data/DP_LIVE/.HRWKD.../OECD?contentType=csv&detail=code&separator=comma&csv-lang=en'
+  download.file(url, paste0(path, "OECD/hours.csv"), mode="wb")
+
+
+}
+
+  
+  
 # apendix -----------------------------------------------------------------
 
 
@@ -633,7 +628,7 @@ statistics.middle.east <- function(start.year){
   terror.table <- getURL(url)
   write.table(terror.table, file="output/wiki page.txt") # it is easier to navigate in txt form
   
-  
+
   as.text <- read.table("output/wiki page.txt", sep="\t") %>% apply(1, as.character)
   as.text[as.text==""] <- NA
   as.text <- as.text[which(!is.na(as.text))] %>% paste0(as.text, collapse="")
@@ -680,8 +675,8 @@ statistics.middle.east <- function(start.year){
                                   substr(link, start = 6, stop=length(strsplit(link, split="")[[1]])),
                                   ".txt"))
     as.text <- read.table(paste0("html files",
-                                 substr(link, start = 6, stop=length(strsplit(link, split="")[[1]])),
-                                 ".txt"), sep="\t") %>% apply(1, as.character)
+                                  substr(link, start = 6, stop=length(strsplit(link, split="")[[1]])),
+                                  ".txt"), sep="\t") %>% apply(1, as.character)
     
     # The list of countries is between between the titles "Belligerents" and "Commanders and leaders"
     as.text[as.text==""] <- NA

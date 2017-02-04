@@ -15,6 +15,7 @@ library(emibase)
 library(plotrix)
 library(mgcv)
 library(reshape2)
+library(readxl)
 source('functions.R')
 ```
 
@@ -68,6 +69,23 @@ dt.tour <- download.tourism("data/")
 
 dt.eco <- download.economy("data/")
 dt.eco <- make.economy.great.again(dt.eco)
+
+## OECD data on hours worked
+
+dt.oecd <- get_dataset("ANHRS")
+decode  <- get_decoder(path)  
+
+# Decoding country names
+
+dt.oecd <- ddply(dt.oecd, ~COUNTRY + obsTime + EMPSTAT, function(xframe){
+  
+  xframe <<- xframe
+  real.name <-  decode[decode$CODE==xframe$COUNTRY[1], "Country"]
+  if(length(real.name)==0) real.name <- xframe$COUNTRY[1]
+  xframe$COUNTRY <- real.name
+  return(xframe)
+  
+})
 
 ```
 
