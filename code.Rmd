@@ -14,6 +14,7 @@ library(plyr)
 library(emibase)
 library(plotrix)
 library(mgcv)
+library(reshape2)
 source('functions.R')
 ```
 
@@ -48,17 +49,26 @@ createdir("plots")
 createdir("input")
 createdir("data")
 createdir("output")
-createdir("html files")
 ```
 
 ```{r data download and reading it, include=FALSE, echo=F}
-# we will save this data to the 'data folder'
+# we will save this data to the 'data' folder
 download.terror(years.to.survey, "data/") 
-dt <- read.terror("data/")
+dt <- read.terror("data/terror/")
 dt <- arrange(dt, Date)
 na.index <- which(apply(dt, 1, function(x){ all(is.na(x)) }))
 if(length(na.index)!=0) dt <- dt[-na.index, ]
-write.csv(dt, file="output/raw data.csv", na="", row.names=F)
+write.csv(dt, file="output/terror raw data.csv", na="", row.names=F)
+
+## Tourism data
+
+dt.tour <- download.tourism("data/")
+
+## Economic data
+
+dt.eco <- download.economy("data/")
+dt.eco <- make.economy.great.again(dt.eco)
+
 ```
 
 ```{r descriptive statistics, include=FALSE, echo=F, warning=F}
@@ -147,18 +157,23 @@ dev.off()
 ```
 
 ```{r data for logistics model, include=FALSE, echo=F}
-# In this section we will be creating a data frame for a logistic model
 
-dt.log <- ddply(dt, ~Country, function(xframe){
-  xframe <<- xframe
-  numb.of.incidents <- dim(xframe)[1]
-  xframe$numb <- numb.of.incidents
-  return(xframe[nrow(xframe), ])
-})
+# In this section we will be creating a data frame for a VAR model or a panel model
 
-dt.log <- dt.log[, c("Country", "numb")]
+master.data <- aggregate.terror.by.country(dt)
 
-# as one of the regressors we will be using a dummy variable whether a country was involved in some sort of conflict in the middle east or not
+dt.tour <- rename(dt.tour, c("Year" = "Date", "CountryName" = "Country"))
+
+master.data <- merge(master.data, dt.tour)
+
+for(prod in unique(dt.eco$Indicator)){
+  
+  tmp <- dt.eco[dt.eco$Indicator==prod, c("CountryName", "Date", "value")]
+  tmp <- rename(tmp, c("Year" = "Date", "CountryName" = "Country", "value" = prod))
+  master.data <- merge(master.data, tmp)
+  
+}
+
 
 
 ```
