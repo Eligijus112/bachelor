@@ -524,7 +524,7 @@ make.economy.great.again <- function(dt){
   
   # GDP per capita USD
   # Total population 
-  
+  # 
   
   colnames(dt) <- gsub("X", "", colnames(dt))
   
@@ -550,7 +550,7 @@ make.economy.great.again <- function(dt){
 
 ## functions to download OECD data for annual hours worked
 
-get_decoder <- function(...){
+get_decoder <- function(path, ...){
   
   url <- 'http://www.oecd.org/migration/mig/34107835.xls'
   download.file(url, paste0(path, "OECD/decoder.xls"), "internal", quiet = FALSE, mode = "wb",

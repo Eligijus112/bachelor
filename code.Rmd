@@ -8,6 +8,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+library(plm)
 library(RCurl)
 library(dplyr)
 library(plyr)
@@ -50,6 +51,7 @@ createdir("plots")
 createdir("input")
 createdir("data")
 createdir("output")
+devtools::install_url("http://cran.r-project.org/src/contrib/rprojroot_1.2.tar.gz") ## MAY RESOLVE TROUBLESHOOTS
 ```
 
 ```{r data download and reading it, include=FALSE, echo=F}
@@ -73,7 +75,7 @@ dt.eco <- make.economy.great.again(dt.eco)
 ## OECD data on hours worked
 
 dt.oecd <- get_dataset("ANHRS")
-decode  <- get_decoder(path)  
+decode  <- get_decoder("data/")  
 
 # Decoding country names
 
@@ -174,7 +176,7 @@ dev.off()
 
 ```
 
-```{r data for logistics model, include=FALSE, echo=F}
+```{r data for panel model, include=FALSE, echo=F}
 
 # In this section we will be creating a data frame for a VAR model or a panel model
 
@@ -192,11 +194,82 @@ for(prod in unique(dt.eco$Indicator)){
   
 }
 
+# Merging with OECD data
 
+dt.oecd <- plyr::rename(dt.oecd, c("COUNTRY" = "Country", "obsTime" = "Date", "obsValue" = "Working hours"))
+dt.oecd <- dt.oecd[, c("Country", "Date", "Working hours")]
+
+master.data <- merge(master.data, dt.oecd)
+
+# Dropping incomplete rows
+
+master.data <- master.data[complete.cases(master.data), ]
+
+master.data <- arrange(master.data, Country)
 
 ```
 
+\section{Panel data model}
 
+Panel data provides information on individual behaviour, both across individuals and over time - the data has cross-sectional and time-series dimensions. Panel data includes N individuals over T regular time periods. We can denote the model simmilary like a typical bivariate reggression model:
+
+$$ y_{it} = \alpha_{i} + \beta X_{it} + u_{it}   $$
+The difference from a typical reggression model is that there are the $i$ and the $t$ terms, where $i$ denotes the individual and $t$ denotes the time period. The construction of a panel model starts with appropriately 'stacking' the data set. Assuming that y is the dependant variable and X is the matrix of the explanatory variables we need to have the following structure: 
+
+$$Y = y_{i} = \begin{bmatrix}
+       y_{1}    \\
+       y_{2}    \\[0.3em]
+       \vdots   \\[0.3em]
+       y_{N}     \\[0.3em]
+\end{bmatrix} = \begin{bmatrix}
+       e    \\
+       0    \\[0.3em]
+       \vdots   \\[0.3em]
+       0     \\[0.3em]
+\end{bmatrix}  \alpha_{1} +  \begin{bmatrix}
+       0    \\
+       e    \\[0.3em]
+       \vdots   \\[0.3em]
+       0     \\[0.3em]
+\end{bmatrix}  \alpha_{2} + \cdots + \begin{bmatrix}
+       0    \\
+       0    \\[0.3em]
+       \vdots   \\[0.3em]
+       e     \\[0.3em]
+\end{bmatrix}  \alpha_{N} + \begin{bmatrix}
+       x_{1}    \\[0.3em]
+       x_{2}    \\[0.3em]
+       \vdots   \\[0.3em]
+       x_{n}     \\[0.3em]
+\end{bmatrix} \beta +   \begin{bmatrix}
+       u_{1}    \\[0.3em]
+       u_{2}    \\[0.3em]
+       \vdots   \\[0.3em]
+       u_{n}     \\[0.3em]
+\end{bmatrix}$$
+
+Here
+
+$$y_{i} = \begin{bmatrix}
+       y_{i1}    \\
+       y_{i2}    \\[0.3em]
+       \vdots   \\[0.3em]
+       y_{iT}     \\[0.3em]
+\end{bmatrix}
+
+x_{i} = \begin{bmatrix}
+       x_{1i1} & x_{2i1} & \cdots & x_{Ki1}    \\
+       x_{1i2} & x_{2i2} & \cdots & x_{Ki2}   \\[0.3em]
+       \vdots & \vdots & \cdots & \vdots   \\[0.3em]
+      x_{1iT} & x_{2iT} & \cdots & x_{KiT}      \\[0.3em]
+\end{bmatrix}$$  
+
+```{r panel model, include=FALSE, echo=F}
+
+# In this section we will be creating a data frame for a VAR model or a panel model
+
+model <- plm(formula = Total.Arrivals ~ Terror.attacks, data=master.data, index=c("Country"))
+```
 
 
 
