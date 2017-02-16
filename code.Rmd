@@ -231,6 +231,7 @@ OECD.cn <- data.frame(country = unique(master.data$Country),
                       OECD = rep.int("OECD countries", 
                                      length(unique(master.data$Country))))
 malMap <- joinCountryData2Map(OECD.cn, joinCode = "NAME",
+  nameJoinColumn = "country", verbose = F, suggestForFailedCodes = F)
 
 mapCountryData(malMap, nameColumnToPlot="OECD", catMethod = "categorical",
   missingCountryCol = gray(.8), oceanCol = 'cyan', mapTitle = "Political map of the world")
