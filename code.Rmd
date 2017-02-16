@@ -19,6 +19,9 @@ library(reshape2)
 library(readxl)
 library(knitr)
 library(rworldmap)
+library(cshapes)
+library(countrycode)
+library(texreg)
 source('functions.R')
 ```
 
@@ -48,6 +51,7 @@ source('functions.R')
 
 ```{r constants, include=FALSE}
 years.to.survey <- 1970:2015
+path <- "data/"
 regions <- read.csv(file="input/regions.csv", stringsAsFactors = F)
 createdir("plots")
 createdir("input")
@@ -218,6 +222,12 @@ master.data <- master.data[complete.cases(master.data), ]
 
 master.data <- arrange(master.data, Country)
 
+# Adding number of neighbours
+
+neighbours <- find.neighbours(unique(master.data$Country), path=path)
+
+master.data <- merge(master.data, neighbours, sort=F)
+master.data$Numb.neighbour <- as.numeric(as.character(master.data$Numb.neighbour))
 
 ```
 
@@ -301,27 +311,63 @@ y_{i} = \begin{bmatrix}
 \end{bmatrix}
 \]
 
-For example, the 'head' and the 'tail' of the data which will me analysed looks like this:
+For example, the 'head' and the 'tail' of the raw data which will me analysed looks like this:
 
 ```{r, visualising data table, echo=F}
 
 master.data <- plyr::rename(master.data, c('GDP per capita (current US$)' = "GDP.per.capita"))
-master.data <- plyr::rename(master.data, c('Population, total' = "Population"))
 master.data <- plyr::rename(master.data, c('Working hours' = "Hours.worked"))
 
-kable(head(master.data))
-kable(tail(master.data))
+kable(head(master.data), format = "latex", row.names = F)
+kable(tail(master.data), format = "latex", row.names = F)
 
 ```
 
 
 ```{r panel model, include=FALSE, echo=F}
 
-# In this section we will be creating a data frame for a VAR model or a panel model
+# In this section we will be creating a data frame for a panel model
 
-model <- plm(formula = Total.Arrivals ~ Terror.attacks + Population + GDP.per.capita + Hours.worked, data=master.data, index=c("Country"))
+pdata <- plm.data(master.data, index = c("Country", "Date")) 
 
+pdata$Total.Arrivals <- log(pdata$Total.Arrivals)
+pdata$GDP.per.capita <- log(pdata$GDP.per.capita)
+pdata$Hours.worked   <- log(pdata$Hours.worked)
+
+## Creating a factor indicating a "good" geographical location
+
+pdata$Numb.neighbour <- sapply(pdata$Numb.neighbour, function(x){
+  
+  if(x < 5) x <- 0
+  if(x >=5) x <- 1
+  return(x)
+  
+})
+
+pdata$Numb.neighbour <- as.factor(pdata$Numb.neighbour)
+
+model <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked + Numb.neighbour , data=pdata, model="pooling")
+# summary(model)
 ```
+
+\subsection{Straightforward OLS}
+
+The first model which we will be examining will be the simple OLS model which ignores the panel data structure. The equation is then:
+
+\[
+y = \alpha + X \beta + \epsilon
+\]
+
+And the estimator is derived solving the equation:
+
+\[
+\widehat{\beta} = \left( X X^{T} \right)^{-1}X^{t}y
+\]
+
+```{r, results='asis', echo=F, warning=F}
+  texreg(model, caption = "OLS model")
+```
+
 
 
 
