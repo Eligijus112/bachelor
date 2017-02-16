@@ -17,6 +17,8 @@ library(plotrix)
 library(mgcv)
 library(reshape2)
 library(readxl)
+library(knitr)
+library(rworldmap)
 source('functions.R')
 ```
 
@@ -28,7 +30,7 @@ source('functions.R')
 \centerline{\bf \Large \textbf{BACHELOR THESIS}}
 \vskip 50pt
 \begin{center}
-{\bf \LARGE Global terrorism and the economy}
+{\bf \LARGE Tourism model in OECD countries}
 
 \vspace{4mm}
 
@@ -88,6 +90,11 @@ dt.oecd <- ddply(dt.oecd, ~COUNTRY + obsTime + EMPSTAT, function(xframe){
   return(xframe)
   
 })
+
+dt.oecd <- dt.oecd[dt.oecd$EMPSTAT=="TE", ]
+dt.oecd[dt.oecd$COUNTRY=="KOR", "COUNTRY"] <- "South Korea"
+# dt.oecd[dt.oecd$COUNTRY=="Slovak Republic", "COUNTRY"] <- "Slovakia"
+
 
 ```
 
@@ -183,15 +190,19 @@ dev.off()
 master.data <- aggregate.terror.by.country(dt)
 
 dt.tour <- rename(dt.tour, c("Year" = "Date", "CountryName" = "Country"))
+dt.eco <- rename(dt.eco, c("Year" = "Date", "CountryName" = "Country"))
+
+dt.tour$Country <- gsub("Korea, Rep.", "South Korea", dt.tour$Country)
+dt.eco$Country <- gsub("Korea, Rep.", "South Korea", dt.eco$Country)
 
 master.data <- merge(master.data, dt.tour)
 
 for(prod in unique(dt.eco$Indicator)){
-  
-  tmp <- dt.eco[dt.eco$Indicator==prod, c("CountryName", "Date", "value")]
-  tmp <- rename(tmp, c("Year" = "Date", "CountryName" = "Country", "value" = prod))
+
+  tmp <- dt.eco[dt.eco$Indicator==prod, c("Country", "Date", "value")]
+  tmp <- rename(tmp, c("value" = prod))
   master.data <- merge(master.data, tmp)
-  
+
 }
 
 # Merging with OECD data
@@ -207,30 +218,54 @@ master.data <- master.data[complete.cases(master.data), ]
 
 master.data <- arrange(master.data, Country)
 
+
 ```
+
+\section{Countries}
+
+The countries which will be analyzed are all members of the OECD (\textbf{Organisation for Economic Co-operation and Development}). Currently there are 35 member states but in this analysis we will be adding Lithuania and Costa Rica because it is strongly believed that these countries will soon join OECD.
+
+```{r, map of OECD countries, echo=F, fig.width=8, fig.height=8, fig.cap= "Map of the OECD countries", echo=F, warning=F, include=T}
+
+OECD.cn <- data.frame(country = unique(master.data$Country), 
+                      OECD = rep.int("OECD countries", 
+                                     length(unique(master.data$Country))))
+malMap <- joinCountryData2Map(OECD.cn, joinCode = "NAME",
+
+mapCountryData(malMap, nameColumnToPlot="OECD", catMethod = "categorical",
+  missingCountryCol = gray(.8), oceanCol = 'cyan', mapTitle = "Political map of the world")
+
+
+```
+
+\newpage
 
 \section{Panel data model}
 
 Panel data provides information on individual behaviour, both across individuals and over time - the data has cross-sectional and time-series dimensions. Panel data includes N individuals over T regular time periods. We can denote the model simmilary like a typical bivariate reggression model:
 
-$$ y_{it} = \alpha_{i} + \beta X_{it} + u_{it}   $$
+\[
+y_{it} = \alpha_{i} + \beta X_{it} + u_{it}
+\]
+
 The difference from a typical reggression model is that there are the $i$ and the $t$ terms, where $i$ denotes the individual and $t$ denotes the time period. The construction of a panel model starts with appropriately 'stacking' the data set. Assuming that y is the dependant variable and X is the matrix of the explanatory variables we need to have the following structure: 
 
-$$Y = y_{i} = \begin{bmatrix}
-       y_{1}    \\
-       y_{2}    \\[0.3em]
-       \vdots   \\[0.3em]
-       y_{N}     \\[0.3em]
-\end{bmatrix} = \begin{bmatrix}
-       e    \\
-       0    \\[0.3em]
-       \vdots   \\[0.3em]
-       0     \\[0.3em]
-\end{bmatrix}  \alpha_{1} +  \begin{bmatrix}
+\[
+  Y = y_{i} = \begin{bmatrix}
+         y_{1}    \\
+         y_{2}    \\[0.3em]
+         \vdots   \\[0.3em]
+         y_{N}     
+  \end{bmatrix} = \begin{bmatrix}
+         e    \\
+         0    \\[0.3em]
+         \vdots   \\[0.3em]
+         0     
+  \end{bmatrix}  \alpha_{1} + \begin{bmatrix}
        0    \\
        e    \\[0.3em]
        \vdots   \\[0.3em]
-       0     \\[0.3em]
+       0    
 \end{bmatrix}  \alpha_{2} + \cdots + \begin{bmatrix}
        0    \\
        0    \\[0.3em]
@@ -246,29 +281,45 @@ $$Y = y_{i} = \begin{bmatrix}
        u_{2}    \\[0.3em]
        \vdots   \\[0.3em]
        u_{n}     \\[0.3em]
-\end{bmatrix}$$
+\end{bmatrix}
+\]
 
 Here
 
-$$y_{i} = \begin{bmatrix}
+\[
+y_{i} = \begin{bmatrix}
        y_{i1}    \\
        y_{i2}    \\[0.3em]
        \vdots   \\[0.3em]
        y_{iT}     \\[0.3em]
-\end{bmatrix}
-
-x_{i} = \begin{bmatrix}
+\end{bmatrix} x_{i} = \begin{bmatrix}
        x_{1i1} & x_{2i1} & \cdots & x_{Ki1}    \\
        x_{1i2} & x_{2i2} & \cdots & x_{Ki2}   \\[0.3em]
        \vdots & \vdots & \cdots & \vdots   \\[0.3em]
       x_{1iT} & x_{2iT} & \cdots & x_{KiT}      \\[0.3em]
-\end{bmatrix}$$  
+\end{bmatrix}
+\]
+
+For example, the 'head' and the 'tail' of the data which will me analysed looks like this:
+
+```{r, visualising data table, echo=F}
+
+master.data <- plyr::rename(master.data, c('GDP per capita (current US$)' = "GDP.per.capita"))
+master.data <- plyr::rename(master.data, c('Population, total' = "Population"))
+master.data <- plyr::rename(master.data, c('Working hours' = "Hours.worked"))
+
+kable(head(master.data))
+kable(tail(master.data))
+
+```
+
 
 ```{r panel model, include=FALSE, echo=F}
 
 # In this section we will be creating a data frame for a VAR model or a panel model
 
-model <- plm(formula = Total.Arrivals ~ Terror.attacks, data=master.data, index=c("Country"))
+model <- plm(formula = Total.Arrivals ~ Terror.attacks + Population + GDP.per.capita + Hours.worked, data=master.data, index=c("Country"))
+
 ```
 
 
