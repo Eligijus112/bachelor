@@ -22,6 +22,10 @@ library(rworldmap)
 library(cshapes)
 library(countrycode)
 library(texreg)
+library(ggplot2)
+library(directlabels)
+library(splines)
+library(MASS)
 source('functions.R')
 ```
 
@@ -251,7 +255,87 @@ mapCountryData(malMap, nameColumnToPlot="OECD", catMethod = "categorical",
 
 \newpage
 
-\section{Panel data model}
+\subsection{Total number of arrivals}
+
+To have a better picture of the tourist flows to the OECD countries we can visualize the data.
+
+```{r arrivals visualization, echo=F, fig.cap="Total number of tourist arrivals", fig.height=8, fig.width=11}
+
+dt.a <- master.data[, c("Country", "Date", "Total.Arrivals"), ]
+
+dt.a$Date <- as.numeric(dt.a$Date)
+dt.a$Total.Arrivals <- dt.a$Total.Arrivals/1000
+
+p <- ggplot(dt.a, aes(x=Date, y=Total.Arrivals, group=Country, colour=Country)) + geom_line(size=1.2) + ylab("Total Arrivals, thousands") + theme_bw()  + theme(legend.position="none") + scale_x_continuous(expand = c(0, 3)) + geom_dl(aes(label = Country), method = list(dl.combine("last.bumpup"), cex = 1)) 
+
+plot(p)
+
+```
+
+To see the overal trend from all of these countries is quite difficult so we will plot the average of tourist arrivals in each year.
+
+```{r arrival trend, echo=F, fig.cap="Trend of tourists arrivals", fig.height=6, fig.width=7}
+
+dt.a <- master.data[, c("Country", "Date", "Total.Arrivals"), ]
+
+dt.a <- ddply(dt.a, ~Date, function(xframe){
+  
+  xframe <<- xframe
+  
+  results <- data.frame(Country='OECD', Date=xframe$Date[1], Total.Arrivals=mean(xframe$Total.Arrivals, na.rm=T))
+  xframe <- rbind(xframe, results)
+  return(xframe[nrow(xframe), ])
+
+})
+
+dt.a$Total.Arrivals <- dt.a$Total.Arrivals/1000
+dt.a$Date <- as.numeric(dt.a$Date)
+
+p <- ggplot(dt.a, aes(x=Date, y=Total.Arrivals, group=Country, colour=Country, label=Country)) + geom_line(size=1.2) + ylab("Total Arrivals, thousands") + theme_bw() + scale_x_continuous(expand = c(0, 4)) + geom_dl(aes(label = Country), method = list(dl.combine("first.polygons"), cex = 1)) + geom_dl(aes(label = Country), method = list(dl.combine("last.polygons"), cex = 1)) + stat_smooth(se = FALSE, method = "lm", formula = y ~ ns(x,3),aes( colour="Square trend"), linetype="dashed") +
+scale_colour_manual(values = c("coral3", "darkblue"),
+                       guide = guide_legend(override.aes = list(
+                         linetype = c("solid", "dashed"),
+                         shape = c(16, 16)), title="Legend")) 
+
+plot(p)
+
+```
+
+From figure 3 we can clearly see that the overal mean through the years is increasing rapidly. In this paper we will try to model these arrival values and identify the biggest factors of this process. 
+
+\newpage
+\section{Modelling}
+
+The aim of this paper is to create a model to help explain and forecast the total number of arrivals of tourists to a given OECD country. We want to find the function \textbf{f} in the equation:
+
+\[
+log(A)_{it}  = \textbf{f}(log(GDP)_{it}, terror_{it}, log(hours)_{it}, neighbours_{i})
+\]
+
+Here 
+
+$A_{it}$ - total number of arrivals to a country i at time period t, thousands
+
+$GDP_{it}$ - GDP per capita at a country i at time period t, thousands 
+
+$terror_{it}$ - total number of terrorist attacks at country i at time period t
+
+$hours_{it}$ - average numbers of hours worked annualy at country i at time period t
+
+$neighbours_{i}$ - a factor variable indicating whether a country has a "good" geographical location or not. The measure of goodness is whether a country has at least 5 or more surounding countries which the smallest distance to country i is smaller than 100 km.
+
+
+\subsection{Motivation behind variable selection}
+
+\subsubsection{Gross domestic product per capita}
+
+The variable $GDP$ was chosen to reflect the economic situation and the standart of living in a given country. GDP per capita is calculated by taking the  total output of a country and dividing it by the number of people in the country. The division by the number of people helps us to compare economies between countries. 
+
+
+
+\newpage
+
+\subsection{Panel data model}
 
 Panel data provides information on individual behaviour, both across individuals and over time - the data has cross-sectional and time-series dimensions. Panel data includes N individuals over T regular time periods. We can denote the model simmilary like a typical bivariate reggression model:
 
@@ -350,7 +434,7 @@ model <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.
 # summary(model)
 ```
 
-\subsection{Straightforward OLS}
+\subsubsection{Pooling estimator}
 
 The first model which we will be examining will be the simple OLS model which ignores the panel data structure. The equation is then:
 
