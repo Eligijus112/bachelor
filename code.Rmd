@@ -1,10 +1,12 @@
 ---
 output:
-  pdf_document:
+ pdf_document: 
     fig_caption: yes
+    keep_tex: yes
     number_sections: no
-   # toc: true
-#bibliography: library.bib
+    # latex_engine: xelatex
+   # header_includes: \usepackage{float}
+
 ---
 
 ```{r setup, include=FALSE}
@@ -62,6 +64,7 @@ createdir("input")
 createdir("data")
 createdir("output")
 devtools::install_url("http://cran.r-project.org/src/contrib/rprojroot_1.2.tar.gz") ## MAY RESOLVE TROUBLESHOOTS
+knitr::opts_chunk$set(fig.pos = 'h')
 ```
 
 ```{r data download and reading it, include=FALSE, echo=F}
@@ -233,6 +236,10 @@ neighbours <- find.neighbours(unique(master.data$Country), path=path)
 master.data <- merge(master.data, neighbours, sort=F)
 master.data$Numb.neighbour <- as.numeric(as.character(master.data$Numb.neighbour))
 
+
+master.data <- plyr::rename(master.data, c('GDP per capita (current US$)' = "GDP.per.capita"))
+master.data <- plyr::rename(master.data, c('Working hours' = "Hours.worked"))
+
 ```
 
 \section{Countries}
@@ -259,7 +266,7 @@ mapCountryData(malMap, nameColumnToPlot="OECD", catMethod = "categorical",
 
 To have a better picture of the tourist flows to the OECD countries we can visualize the data.
 
-```{r arrivals visualization, echo=F, fig.cap="Total number of tourist arrivals", fig.height=8, fig.width=11}
+```{r arrivals visualization, echo=F, fig.cap="Total number of tourist arrivals", fig.height=8, fig.width=11, fig.pos="H"}
 
 dt.a <- master.data[, c("Country", "Date", "Total.Arrivals"), ]
 
@@ -274,7 +281,7 @@ plot(p)
 
 To see the overal trend from all of these countries is quite difficult so we will plot the average of tourist arrivals in each year.
 
-```{r arrival trend, echo=F, fig.cap="Trend of tourists arrivals", fig.height=6, fig.width=7}
+```{r arrival trend, echo=F, fig.cap="Trend of tourists arrivals", fig.height=6, fig.width=7,  fig.pos="H"}
 
 dt.a <- master.data[, c("Country", "Date", "Total.Arrivals"), ]
 
@@ -331,7 +338,64 @@ $neighbours_{i}$ - a factor variable indicating whether a country has a "good" g
 
 The variable $GDP$ was chosen to reflect the economic situation and the standart of living in a given country. GDP per capita is calculated by taking the  total output of a country and dividing it by the number of people in the country. The division by the number of people helps us to compare economies between countries. 
 
+```{r OECD GDP per capita, echo=F, fig.cap="GDP per capita of OECD", fig.height=6, fig.width=7,  fig.pos="H"}
 
+dt.a <- master.data[, c("Country", "Date", "GDP.per.capita")]
+
+dt.a <- ddply(dt.a, ~Date, function(xframe){
+  
+  xframe <<- xframe
+  
+  results <- data.frame(Country='OECD', Date=xframe$Date[1], GDP.per.capita=mean(xframe$GDP.per.capita, na.rm=T))
+  xframe <- rbind(xframe, results)
+  return(xframe[nrow(xframe), ])
+
+})
+
+dt.a <- rename(dt.a, c("GDP.per.capita" = "value"))
+dt.a$Date <- as.numeric(dt.a$Date)
+
+p <- ggplot(dt.a, aes(x=Date, y=value, group=Country, colour=Country, label=Country)) + geom_line(size=1.2) + ylab("GDP per capita, USD") + theme_bw() + scale_x_continuous(expand = c(0, 4)) + geom_dl(aes(label = Country), method = list(dl.combine("first.polygons"), cex = 1)) + geom_dl(aes(label = Country), method = list(dl.combine("last.polygons"), cex = 1))  +
+scale_colour_manual(values = c("coral3"),
+                       guide = guide_legend(override.aes = list(
+                         linetype = c("solid"),
+                         shape = c(16)), title="Legend")) 
+
+plot(p)
+
+```
+
+\newpage
+
+\subsubsection{Number of terrorist attacks}
+
+In recent years there has been an increase in terrorist attacks in the OECD member countries: France, Germany, Turkey and others have suffered attacks, especially from the group called ISIS. It is quite straightforward to think that in light of these attacks tourists will be trying to avoid countries with a higher chance of a terrorist attack. We will want to know whether terrorist attacks is a significant variable to tourist arrivals and how much of an impact it has. 
+
+```{r visualizing terror, echo=F, fig.cap="Terrorism in OECD countries", fig.height=6, fig.width=7,  fig.pos="H"}
+
+dt.a <- master.data[, c("Country", "Date", "Terror.attacks")]
+
+dt.a <- ddply(dt.a, ~Country, function(xframe){
+  
+  xframe <<- xframe
+  
+  results <- data.frame(Country=xframe$Country, Date="Total", Terror.attacks=sum(xframe$Terror.attacks, na.rm=T))
+  xframe <- rbind(xframe, results)
+  return(xframe[nrow(xframe), ])
+
+})
+
+dt.a <- t(dt.a[, c("Country", "Terror.attacks")])
+# dt.a[2, ] <- as.numeric(dt.a[2, ])
+nn <- dt.a[1, ]
+dt.a <- dt.a[-1, ] %>% as.data.frame() %>% t()
+dt.a <- apply(dt.a, c(1,2), function(x) {as.numeric(x)})
+names(dt.a) <- nn
+dt.a <- sort(dt.a)
+par(mai=c(1,2,1,1))
+barplot(dt.a , col='deepskyblue3',  horiz=T , las=1, cex.names = 0.7, main="Total number of attacks")
+
+```
 
 \newpage
 
@@ -340,7 +404,9 @@ The variable $GDP$ was chosen to reflect the economic situation and the standart
 Panel data provides information on individual behaviour, both across individuals and over time - the data has cross-sectional and time-series dimensions. Panel data includes N individuals over T regular time periods. We can denote the model simmilary like a typical bivariate reggression model:
 
 \[
-y_{it} = \alpha_{i} + \beta X_{it} + u_{it}
+\begin{equation}
+  y_{it} = \alpha_{i} + \beta X_{it} + u_{it} 
+\end{equation}
 \]
 
 The difference from a typical reggression model is that there are the $i$ and the $t$ terms, where $i$ denotes the individual and $t$ denotes the time period. The construction of a panel model starts with appropriately 'stacking' the data set. Assuming that y is the dependant variable and X is the matrix of the explanatory variables we need to have the following structure: 
@@ -399,19 +465,6 @@ For example, the 'head' and the 'tail' of the raw data which will me analysed lo
 
 ```{r, visualising data table, echo=F}
 
-master.data <- plyr::rename(master.data, c('GDP per capita (current US$)' = "GDP.per.capita"))
-master.data <- plyr::rename(master.data, c('Working hours' = "Hours.worked"))
-
-kable(head(master.data), format = "latex", row.names = F)
-kable(tail(master.data), format = "latex", row.names = F)
-
-```
-
-
-```{r panel model, include=FALSE, echo=F}
-
-# In this section we will be creating a data frame for a panel model
-
 pdata <- plm.data(master.data, index = c("Country", "Date")) 
 
 pdata$Total.Arrivals <- log(pdata$Total.Arrivals)
@@ -429,6 +482,13 @@ pdata$Numb.neighbour <- sapply(pdata$Numb.neighbour, function(x){
 })
 
 pdata$Numb.neighbour <- as.factor(pdata$Numb.neighbour)
+kable(head(pdata), format = "latex", row.names = F)
+kable(tail(pdata), format = "latex", row.names = F)
+
+```
+
+
+```{r pooling panel model, include=FALSE, echo=F}
 
 model <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked + Numb.neighbour , data=pdata, model="pooling")
 # summary(model)
@@ -445,12 +505,20 @@ y = \alpha + X \beta + \epsilon
 And the estimator is derived solving the equation:
 
 \[
-\widehat{\beta} = \left( X X^{T} \right)^{-1}X^{t}y
+\widehat{\beta} = \left( X X^{T} \right)^{-1}X^{T}y
 \]
 
-```{r, results='asis', echo=F, warning=F}
-  texreg(model, caption = "OLS model")
+```{r, results='asis', echo=F, warning=F, fig.pos="h"}
+  texreg(model, caption = "OLS model", custom.coef.names = c("Intercept", "log attacks", "log GDP", "log Hours", "neighbours"))
 ```
+
+According to this model, there is a positive influence to tourism caused by terrorist attacks, which is not logical. Given that this model does not take into consideration the panel structure of the data, we will not be using straighforward OLS in our analysis. 
+
+\subsubsection{Random effects model}
+
+In this section we will be creating a random effects panel data model. Recall equation (1). The $\alpha_{i}$ is called the \textit{individual effect}.
+If $\alpha_{i}$ does not correlate with $X_{it}$ then the panel model can be reffered to as a random effects model. 
+
 
 
 

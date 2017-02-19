@@ -32,6 +32,9 @@ output/*
 input/*
 *.pdf
 html files/*
+*.html
+code_files/*
+*.tex
 
 # =========================
 # Operating System Files
