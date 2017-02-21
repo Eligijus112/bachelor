@@ -551,7 +551,7 @@ make.economy.great.again <- function(dt){
 ## functions to download OECD data for annual hours worked
 
 get_decoder <- function(path, ...){
-  
+  createdir(paste0(path, "OECD"))
   url <- 'http://www.oecd.org/migration/mig/34107835.xls'
   download.file(url, paste0(path, "OECD/decoder.xls"), "internal", quiet = FALSE, mode = "wb",
                 cacheOK = TRUE,
@@ -648,7 +648,7 @@ find.neighbours <- function(cn, path){
   dmat <- as.data.frame(dmat)
   
   names.on.file <- colnames(dmat)
-  decode <- merge(data.frame(cown=as.numeric(names.on.file)), countrycode_data[, c("country.name", "cown")], sort=F)
+  decode <- merge(data.frame(cown=as.numeric(names.on.file)), countrycode_data[, c("country.name.en", "cown")], sort=F)
   
   decode$country.name <- gsub("Korea, Republic of", "South Korea", decode$country.name)
   decode$country.name <- gsub("Slovakia", "Slovak Republic", decode$country.name)
