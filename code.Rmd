@@ -67,7 +67,7 @@ dt.tour <- download.tourism("data/")
 
 ## Economic data
 
-dt.eco <- download.economy("data/")
+dt.eco <- download.economy("data/", check=F)
 dt.eco <- make.economy.great.again(dt.eco)
 
 ## OECD data on hours worked
