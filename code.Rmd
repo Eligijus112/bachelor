@@ -58,7 +58,7 @@ years.to.survey <- 1970:2015
 path <- "data/"
 regions <- read.csv(file="input/regions.csv", stringsAsFactors = F)
 createdir("plots")
-createdir("input")
+# createdir("input")
 createdir("data")
 createdir("output")
 devtools::install_url("http://cran.r-project.org/src/contrib/rprojroot_1.2.tar.gz") ## MAY RESOLVE TROUBLESHOOTS
