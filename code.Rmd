@@ -8,6 +8,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+library(plm)
 library(RCurl)
 library(dplyr)
 library(plyr)
@@ -16,6 +17,15 @@ library(plotrix)
 library(mgcv)
 library(reshape2)
 library(readxl)
+library(knitr)
+library(rworldmap)
+library(cshapes)
+library(countrycode)
+library(texreg)
+library(ggplot2)
+library(directlabels)
+library(splines)
+library(MASS)
 source('functions.R')
 ```
 
@@ -27,7 +37,7 @@ source('functions.R')
 \centerline{\bf \Large \textbf{BACHELOR THESIS}}
 \vskip 50pt
 \begin{center}
-{\bf \LARGE Global terrorism and the economy}
+{\bf \LARGE Tourism model in OECD countries}
 
 \vspace{4mm}
 
@@ -45,11 +55,13 @@ source('functions.R')
 
 ```{r constants, include=FALSE}
 years.to.survey <- 1970:2015
+path <- "data/"
 regions <- read.csv(file="input/regions.csv", stringsAsFactors = F)
 createdir("plots")
 createdir("input")
 createdir("data")
 createdir("output")
+devtools::install_url("http://cran.r-project.org/src/contrib/rprojroot_1.2.tar.gz") ## MAY RESOLVE TROUBLESHOOTS
 ```
 
 ```{r data download and reading it, include=FALSE, echo=F}
@@ -73,7 +85,7 @@ dt.eco <- make.economy.great.again(dt.eco)
 ## OECD data on hours worked
 
 dt.oecd <- get_dataset("ANHRS")
-decode  <- get_decoder(path)  
+decode  <- get_decoder("data/")  
 
 # Decoding country names
 
@@ -86,6 +98,11 @@ dt.oecd <- ddply(dt.oecd, ~COUNTRY + obsTime + EMPSTAT, function(xframe){
   return(xframe)
   
 })
+
+dt.oecd <- dt.oecd[dt.oecd$EMPSTAT=="TE", ]
+dt.oecd[dt.oecd$COUNTRY=="KOR", "COUNTRY"] <- "South Korea"
+# dt.oecd[dt.oecd$COUNTRY=="Slovak Republic", "COUNTRY"] <- "Slovakia"
+
 
 ```
 
@@ -174,28 +191,266 @@ dev.off()
 
 ```
 
-```{r data for logistics model, include=FALSE, echo=F}
+```{r data for panel model, include=FALSE, echo=F}
 
 # In this section we will be creating a data frame for a VAR model or a panel model
 
 master.data <- aggregate.terror.by.country(dt)
 
 dt.tour <- rename(dt.tour, c("Year" = "Date", "CountryName" = "Country"))
+dt.eco <- rename(dt.eco, c("Year" = "Date", "CountryName" = "Country"))
+
+dt.tour$Country <- gsub("Korea, Rep.", "South Korea", dt.tour$Country)
+dt.eco$Country <- gsub("Korea, Rep.", "South Korea", dt.eco$Country)
 
 master.data <- merge(master.data, dt.tour)
 
 for(prod in unique(dt.eco$Indicator)){
-  
-  tmp <- dt.eco[dt.eco$Indicator==prod, c("CountryName", "Date", "value")]
-  tmp <- rename(tmp, c("Year" = "Date", "CountryName" = "Country", "value" = prod))
+
+  tmp <- dt.eco[dt.eco$Indicator==prod, c("Country", "Date", "value")]
+  tmp <- rename(tmp, c("value" = prod))
   master.data <- merge(master.data, tmp)
-  
+
 }
 
+# Merging with OECD data
+
+dt.oecd <- plyr::rename(dt.oecd, c("COUNTRY" = "Country", "obsTime" = "Date", "obsValue" = "Working hours"))
+dt.oecd <- dt.oecd[, c("Country", "Date", "Working hours")]
+
+master.data <- merge(master.data, dt.oecd)
+
+# Dropping incomplete rows
+
+master.data <- master.data[complete.cases(master.data), ]
+
+master.data <- arrange(master.data, Country)
+
+# Adding number of neighbours
+
+neighbours <- find.neighbours(unique(master.data$Country), path=path)
+
+master.data <- merge(master.data, neighbours, sort=F)
+master.data$Numb.neighbour <- as.numeric(as.character(master.data$Numb.neighbour))
+
+```
+
+\section{Countries}
+
+The countries which will be analyzed are all members of the OECD (\textbf{Organisation for Economic Co-operation and Development}). Currently there are 35 member states but in this analysis we will be adding Lithuania and Costa Rica because it is strongly believed that these countries will soon join OECD.
+
+```{r, map of OECD countries, echo=F, fig.width=8, fig.height=8, fig.cap= "Map of the OECD countries", echo=F, warning=F, include=T}
+
+OECD.cn <- data.frame(country = unique(master.data$Country), 
+                      OECD = rep.int("OECD countries", 
+                                     length(unique(master.data$Country))))
+malMap <- joinCountryData2Map(OECD.cn, joinCode = "NAME",
+  nameJoinColumn = "country", verbose = F, suggestForFailedCodes = F)
+
+mapCountryData(malMap, nameColumnToPlot="OECD", catMethod = "categorical",
+  missingCountryCol = gray(.8), oceanCol = 'cyan', mapTitle = "Political map of the world")
 
 
 ```
 
+\newpage
+
+\subsection{Total number of arrivals}
+
+To have a better picture of the tourist flows to the OECD countries we can visualize the data.
+
+```{r arrivals visualization, echo=F, fig.cap="Total number of tourist arrivals", fig.height=8, fig.width=11}
+
+dt.a <- master.data[, c("Country", "Date", "Total.Arrivals"), ]
+
+dt.a$Date <- as.numeric(dt.a$Date)
+dt.a$Total.Arrivals <- dt.a$Total.Arrivals/1000
+
+p <- ggplot(dt.a, aes(x=Date, y=Total.Arrivals, group=Country, colour=Country)) + geom_line(size=1.2) + ylab("Total Arrivals, thousands") + theme_bw()  + theme(legend.position="none") + scale_x_continuous(expand = c(0, 3)) + geom_dl(aes(label = Country), method = list(dl.combine("last.bumpup"), cex = 1)) 
+
+plot(p)
+
+```
+
+To see the overal trend from all of these countries is quite difficult so we will plot the average of tourist arrivals in each year.
+
+```{r arrival trend, echo=F, fig.cap="Trend of tourists arrivals", fig.height=6, fig.width=7}
+
+dt.a <- master.data[, c("Country", "Date", "Total.Arrivals"), ]
+
+dt.a <- ddply(dt.a, ~Date, function(xframe){
+  
+  xframe <<- xframe
+  
+  results <- data.frame(Country='OECD', Date=xframe$Date[1], Total.Arrivals=mean(xframe$Total.Arrivals, na.rm=T))
+  xframe <- rbind(xframe, results)
+  return(xframe[nrow(xframe), ])
+
+})
+
+dt.a$Total.Arrivals <- dt.a$Total.Arrivals/1000
+dt.a$Date <- as.numeric(dt.a$Date)
+
+p <- ggplot(dt.a, aes(x=Date, y=Total.Arrivals, group=Country, colour=Country, label=Country)) + geom_line(size=1.2) + ylab("Total Arrivals, thousands") + theme_bw() + scale_x_continuous(expand = c(0, 4)) + geom_dl(aes(label = Country), method = list(dl.combine("first.polygons"), cex = 1)) + geom_dl(aes(label = Country), method = list(dl.combine("last.polygons"), cex = 1)) + stat_smooth(se = FALSE, method = "lm", formula = y ~ ns(x,3),aes( colour="Square trend"), linetype="dashed") +
+scale_colour_manual(values = c("coral3", "darkblue"),
+                       guide = guide_legend(override.aes = list(
+                         linetype = c("solid", "dashed"),
+                         shape = c(16, 16)), title="Legend")) 
+
+plot(p)
+
+```
+
+From figure 3 we can clearly see that the overal mean through the years is increasing rapidly. In this paper we will try to model these arrival values and identify the biggest factors of this process. 
+
+\newpage
+\section{Modelling}
+
+The aim of this paper is to create a model to help explain and forecast the total number of arrivals of tourists to a given OECD country. We want to find the function \textbf{f} in the equation:
+
+\[
+log(A)_{it}  = \textbf{f}(log(GDP)_{it}, terror_{it}, log(hours)_{it}, neighbours_{i})
+\]
+
+Here 
+
+$A_{it}$ - total number of arrivals to a country i at time period t, thousands
+
+$GDP_{it}$ - GDP per capita at a country i at time period t, thousands 
+
+$terror_{it}$ - total number of terrorist attacks at country i at time period t
+
+$hours_{it}$ - average numbers of hours worked annualy at country i at time period t
+
+$neighbours_{i}$ - a factor variable indicating whether a country has a "good" geographical location or not. The measure of goodness is whether a country has at least 5 or more surounding countries which the smallest distance to country i is smaller than 100 km.
+
+
+\subsection{Motivation behind variable selection}
+
+\subsubsection{Gross domestic product per capita}
+
+The variable $GDP$ was chosen to reflect the economic situation and the standart of living in a given country. GDP per capita is calculated by taking the  total output of a country and dividing it by the number of people in the country. The division by the number of people helps us to compare economies between countries. 
+
+
+
+\newpage
+
+\subsection{Panel data model}
+
+Panel data provides information on individual behaviour, both across individuals and over time - the data has cross-sectional and time-series dimensions. Panel data includes N individuals over T regular time periods. We can denote the model simmilary like a typical bivariate reggression model:
+
+\[
+y_{it} = \alpha_{i} + \beta X_{it} + u_{it}
+\]
+
+The difference from a typical reggression model is that there are the $i$ and the $t$ terms, where $i$ denotes the individual and $t$ denotes the time period. The construction of a panel model starts with appropriately 'stacking' the data set. Assuming that y is the dependant variable and X is the matrix of the explanatory variables we need to have the following structure: 
+
+\[
+  Y = y_{i} = \begin{bmatrix}
+         y_{1}    \\
+         y_{2}    \\[0.3em]
+         \vdots   \\[0.3em]
+         y_{N}     
+  \end{bmatrix} = \begin{bmatrix}
+         e    \\
+         0    \\[0.3em]
+         \vdots   \\[0.3em]
+         0     
+  \end{bmatrix}  \alpha_{1} + \begin{bmatrix}
+       0    \\
+       e    \\[0.3em]
+       \vdots   \\[0.3em]
+       0    
+\end{bmatrix}  \alpha_{2} + \cdots + \begin{bmatrix}
+       0    \\
+       0    \\[0.3em]
+       \vdots   \\[0.3em]
+       e     \\[0.3em]
+\end{bmatrix}  \alpha_{N} + \begin{bmatrix}
+       x_{1}    \\[0.3em]
+       x_{2}    \\[0.3em]
+       \vdots   \\[0.3em]
+       x_{n}     \\[0.3em]
+\end{bmatrix} \beta +   \begin{bmatrix}
+       u_{1}    \\[0.3em]
+       u_{2}    \\[0.3em]
+       \vdots   \\[0.3em]
+       u_{n}     \\[0.3em]
+\end{bmatrix}
+\]
+
+Here
+
+\[
+y_{i} = \begin{bmatrix}
+       y_{i1}    \\
+       y_{i2}    \\[0.3em]
+       \vdots   \\[0.3em]
+       y_{iT}     \\[0.3em]
+\end{bmatrix} x_{i} = \begin{bmatrix}
+       x_{1i1} & x_{2i1} & \cdots & x_{Ki1}    \\
+       x_{1i2} & x_{2i2} & \cdots & x_{Ki2}   \\[0.3em]
+       \vdots & \vdots & \cdots & \vdots   \\[0.3em]
+      x_{1iT} & x_{2iT} & \cdots & x_{KiT}      \\[0.3em]
+\end{bmatrix}
+\]
+
+For example, the 'head' and the 'tail' of the raw data which will me analysed looks like this:
+
+```{r, visualising data table, echo=F}
+
+master.data <- plyr::rename(master.data, c('GDP per capita (current US$)' = "GDP.per.capita"))
+master.data <- plyr::rename(master.data, c('Working hours' = "Hours.worked"))
+
+kable(head(master.data), format = "latex", row.names = F)
+kable(tail(master.data), format = "latex", row.names = F)
+
+```
+
+
+```{r panel model, include=FALSE, echo=F}
+
+# In this section we will be creating a data frame for a panel model
+
+pdata <- plm.data(master.data, index = c("Country", "Date")) 
+
+pdata$Total.Arrivals <- log(pdata$Total.Arrivals)
+pdata$GDP.per.capita <- log(pdata$GDP.per.capita)
+pdata$Hours.worked   <- log(pdata$Hours.worked)
+
+## Creating a factor indicating a "good" geographical location
+
+pdata$Numb.neighbour <- sapply(pdata$Numb.neighbour, function(x){
+  
+  if(x < 5) x <- 0
+  if(x >=5) x <- 1
+  return(x)
+  
+})
+
+pdata$Numb.neighbour <- as.factor(pdata$Numb.neighbour)
+
+model <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked + Numb.neighbour , data=pdata, model="pooling")
+# summary(model)
+```
+
+\subsubsection{Pooling estimator}
+
+The first model which we will be examining will be the simple OLS model which ignores the panel data structure. The equation is then:
+
+\[
+y = \alpha + X \beta + \epsilon
+\]
+
+And the estimator is derived solving the equation:
+
+\[
+\widehat{\beta} = \left( X X^{T} \right)^{-1}X^{t}y
+\]
+
+```{r, results='asis', echo=F, warning=F}
+  texreg(model, caption = "OLS model")
+```
 
 
 

@@ -522,13 +522,13 @@ make.economy.great.again <- function(dt){
   
   # We will leave the following products (for now):
   
-  # GDP per capita USD
-  # Total population 
-  
+  # GDP per capita USD - to measure the state of the economy
+  # 
+  # 
   
   colnames(dt) <- gsub("X", "", colnames(dt))
   
-  dt <- dt[dt$Indicator %in% c("GDP per capita (current US$)", "Population, total"), ]
+  dt <- dt[dt$Indicator %in% c("GDP per capita (current US$)"), ]
   dt[dt<0] <- NA
   
   dt[, paste(years.to.survey)] <- apply(dt[, paste(years.to.survey)], 1, function(x){
@@ -550,7 +550,7 @@ make.economy.great.again <- function(dt){
 
 ## functions to download OECD data for annual hours worked
 
-get_decoder <- function(...){
+get_decoder <- function(path, ...){
   
   url <- 'http://www.oecd.org/migration/mig/34107835.xls'
   download.file(url, paste0(path, "OECD/decoder.xls"), "internal", quiet = FALSE, mode = "wb",
@@ -622,6 +622,87 @@ get_dataset <- function(dataset, filter = NULL, start_time = NULL, end_time = NU
   df
 }
 
+find.neighbours <- function(cn, path){
+  
+  createdir(paste0(path, "GeoCountries"))
+  
+  # Calculating minimal distances between countries
+  # This might take a while
+  
+  require(cshapes)
+  if(length(grep("distances.csv", list.files(paste0(path, "GeoCountries"))))==1){
+    
+    cat("The data seems to be downloaded")
+    dmat <- read.csv(paste0(path, "GeoCountries/distances.csv"), header = F)
+    colnames(dmat) <- dmat[1, ]
+    rownames(dmat) <- dmat[1, ]
+    dmat <- dmat[-1, -1] 
+    
+     
+  } else{
+    
+    dmat <- distmatrix(as.Date("2002-1-1"), type="mindist", useGW=F)
+    write.csv(dmat, paste0(path, "GeoCountries/distances.csv"))
+  }
+  
+  dmat <- as.data.frame(dmat)
+  
+  names.on.file <- colnames(dmat)
+  decode <- merge(data.frame(cown=as.numeric(names.on.file)), countrycode_data[, c("country.name", "cown")], sort=F)
+  
+  decode$country.name <- gsub("Korea, Republic of", "South Korea", decode$country.name)
+  decode$country.name <- gsub("Slovakia", "Slovak Republic", decode$country.name)
+  
+  colnames(dmat) <- decode$country.name
+  rownames(dmat) <- decode$country.name
+  
+  results <- data.frame()
+  
+  for(country in cn){
+    
+   numb <- length(which(dmat[country, ]<100))
+   results <- rbind(results, t(as.data.frame(c(country, numb)))) 
+    
+  }
+  
+  colnames(results) <- c("Country", "Numb.neighbour")
+  return(results)
+  
+}
+
+## This function downloads the number of neighbours of the given countries
+
+# download.neighbours <- function(cn, path){
+#  
+#   createdir(paste0(path, "GeoCountries"))
+#   
+#   if(length(grep("tmp.zip", list.files(paste0(path, "GeoCountries"))))==1){ 
+#     
+#     cat("The data seems to be downloaded")
+#     
+#   } else {
+#     
+#     url <- 'http://download.geonames.org/export/dump/allCountries.zip'
+#     download.file(url, destfile = paste0(path, "GeoCountries/tmp.zip"))
+#     
+#   }
+#   
+#   
+#   ## Downloading the decoder
+#   url <- "http://download.geonames.org/export/dump/countryInfo.txt"
+#   download.file(url, destfile = paste0(path, "GeoCountries/decoder.txt"))
+#   decoder <- read.table(paste0(path, "GeoCountries/decoder.txt"), sep=";", header=T)
+#   
+#   # Adjustments
+#   
+#   decoder <- 
+#   
+#   grep(decoder, "Australia")
+#   
+#   unzip(paste0(path, "GeoCountries/tmp.zip"), exdir = paste0(path, "GeoCountries"))
+#   
+#   return(read.table(paste0(path, "GeoCountries/allCountries.txt"), sep=";"))
+# }
 
 # apendix -----------------------------------------------------------------
 
@@ -694,5 +775,66 @@ statistics.middle.east <- function(start.year){
   
 }
 
-
+joinCountryData2Map <- function (dF, joinCode = "ISO3", nameJoinColumn = "ISO3V10", 
+          nameCountryColumn = "Country", suggestForFailedCodes = FALSE, 
+          mapResolution = "coarse", projection = NA, verbose = FALSE) 
+{
+  mapWithData <- getMap(resolution = mapResolution)
+  if (!is.na(projection)) 
+    warning("the projection argument has been deprecated, returning Lat Lon, use spTransform from package rgdal as shown in help details or the FAQ")
+  listJoinCodesNew <- c("ISO_A2", "ISO_A3", "FIPS_10_", "ADMIN", 
+                        "ISO_N3")
+  listJoinCodesOld <- c("ISO2", "ISO3", "FIPS", "NAME", "UN")
+  listJoinCodes <- c(listJoinCodesOld, listJoinCodesNew)
+  if (joinCode %in% listJoinCodes == FALSE) {
+    stop("your joinCode (", joinCode, ") in joinCountryData2Map() is not one of those supported. Options are :", 
+         paste(listJoinCodes, ""), "\n")
+    return(FALSE)
+  }
+  joinCodeOld <- joinCode
+  if (joinCode %in% listJoinCodesOld) {
+    joinCode <- listJoinCodesNew[match(joinCode, listJoinCodesOld)]
+  }
+  if (is.na(match(nameJoinColumn, names(dF)))) {
+    stop("your chosen nameJoinColumn :'", nameJoinColumn, 
+         "' seems not to exist in your data, columns = ", 
+         paste(names(dF), ""))
+    return(FALSE)
+  }
+  dF[[joinCode]] <- as.character(dF[[nameJoinColumn]])
+  dF[[joinCode]] <- gsub("[[:space:]]*$", "", dF[[joinCode]])
+  if (joinCode == "ADMIN") {
+    dF$ISO3 <- NA
+    for (i in 1:nrow(dF)) dF$ISO3[i] = rwmGetISO3(dF[[joinCode]][i])
+    joinCode = "ISO3"
+    nameCountryColumn = nameJoinColumn
+  }
+  matchPosnsInLookup <- match(as.character(dF[[joinCode]]), 
+                              as.character(mapWithData@data[[joinCode]]))
+  failedCodes <- dF[[joinCode]][is.na(matchPosnsInLookup)]
+  numFailedCodes <- length(failedCodes)
+  numMatchedCountries <- nrow(dF) - numFailedCodes
+  
+  failedCountries <- dF[[nameCountryColumn]][is.na(matchPosnsInLookup)]
+  failedCountries <- cbind(failedCodes, failedCountries = as.character(failedCountries))
+  
+  if (verbose) 
+    print(failedCountries)
+  matchPosnsInUserData <- match(as.character(mapWithData@data[[joinCode]]), 
+                                as.character(dF[[joinCode]]))
+  codesMissingFromUserData <- as.character(mapWithData@data[[joinCode]][is.na(matchPosnsInUserData)])
+  countriesMissingFromUserData <- as.character(mapWithData@data[["NAME"]][is.na(matchPosnsInUserData)])
+  numMissingCodes <- length(codesMissingFromUserData)
+  
+  mapWithData@data <- cbind(mapWithData@data, dF[matchPosnsInUserData, 
+                                                 ])
+  
+  if(verbose){
+    cat(numMatchedCountries, "codes from your data successfully matched countries in the map\n")
+    cat(numFailedCodes, "codes from your data failed to match with a country code in the map\n")
+    cat(numMissingCodes, "codes from the map weren't represented in your data\n")
+  }
+  
+  invisible(mapWithData)
+}
 
