@@ -704,7 +704,7 @@ find.neighbours <- function(cn, path){
 #   return(read.table(paste0(path, "GeoCountries/allCountries.txt"), sep=";"))
 # }
 
-# apendix -----------------------------------------------------------------
+# Other -----------------------------------------------------------------
 
 
 ## we will finish the function bellow later
@@ -838,3 +838,23 @@ joinCountryData2Map <- function (dF, joinCode = "ISO3", nameJoinColumn = "ISO3V1
   invisible(mapWithData)
 }
 
+MSE <- function(y,yhat)
+{
+  mean((y-yhat)**2)
+}
+
+## mean absolute (prediction) error
+MAE <- function(y,yhat)
+{
+  mean(abs(y-yhat))
+}
+
+## mean absolute percentage (prediction) error
+MAPE <- function(y,yhat,percent=TRUE)
+{
+  if(percent){
+    100*mean(abs( (y-yhat)/y ))
+  } else {
+    mean(abs( (y-yhat)/y ))
+  }
+}

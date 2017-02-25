@@ -179,7 +179,7 @@ mapCountryData(malMap, nameColumnToPlot="OECD", catMethod = "categorical",
 
 To have a better picture of the tourist flows to the OECD countries we can visualize the data.
 
-```{r arrivals visualization, echo=F, fig.cap="Total number of tourist arrivals", fig.height=8, fig.width=11, fig.pos="H"}
+```{r arrivals visualization, echo=F, fig.cap="Total number of tourist arrivals", fig.height=10, fig.width=11, fig.pos="H"}
 
 dt.a <- master.data[, c("Country", "Date", "Total.Arrivals"), ]
 
@@ -561,7 +561,116 @@ Applying the F test for individual effects gives the result:
 
 According to these results the fixed effects model is better in explaining the number of arrivals compared to the OLS model.
 
+```{r estimating ols and fixed model fits, echo=F, comment=NA}
+  
+  pdata <- ddply(pdata, ~Country + Date, function(xframe){
+    
+    xframe <<- xframe
+    
+    
+    ## fixed effects
+    
+    intercept <- fixef(model.fixed)[xframe$Country[1]] %>% as.numeric()
+    X <- xframe[, c('Terror.attacks', "GDP.per.capita", "Hours.worked")]
+    fit <- model.fixed$coefficients[1] * X[1] + model.fixed$coefficients[2] * X[2] + model.fixed$coefficients[3] * X[3] + intercept
+    fit <- as.numeric(fit)# because we worked with logs of arrivals
+    xframe$fc.fixed.effect <- fit
+    
+    ## OLS
+    
+    X <- xframe[, c('Terror.attacks', "GDP.per.capita", "Hours.worked", "Numb.neighbour")] %>% as.numeric()
+    fit <- model.ols$coefficients[2] * X[1] + model.ols$coefficients[3] * X[2] + model.ols$coefficients[4] * X[3] + model.ols$coefficients[5] * X[4] 
+    fit <- fit + model.ols$coefficients[1] 
+    xframe$fc.OLS <- fit
+    
+    return(xframe)
+  })
 
+```
+
+
+```{r visualizing the differences between fits, echo=F, fig.cap="OLS and fixed effects model comparison", fig.height=7, fig.width=8,  fig.pos="H"}
+  
+fdt <- pdata[, c("Country", "Date", "Total.Arrivals", "fc.fixed.effect", 'fc.OLS')]
+fdt$Total.Arrivals  <- exp(fdt$Total.Arrivals)/1000
+fdt$fc.fixed.effect <- exp(fdt$fc.fixed.effect)/1000
+fdt$fc.OLS          <- exp(fdt$fc.OLS)/1000
+fdt$Date <- fdt$Date %>% as.character() %>% as.numeric()
+
+## we will plot 3 countries in order to have a clear picture
+cn <- c( "Australia",  "Austria", "Chile", "Lithuania")
+points <- data.frame()
+
+par(mfrow=c(2,2))
+for(cc in cn){
+  
+  tmp <- fdt[fdt$Country==cc, ]
+  points <- tmp[, c("Total.Arrivals", "fc.fixed.effect", 'fc.OLS')]
+  
+grid.frame(x=as.numeric(tmp$Date), y=points)
+  matplot(x=as.numeric(tmp$Date), y=points, lwd=1, lty=1, cex=1.25, pch=20, xlab="Time", ylab="Arrivals, thousands", add = T, type="o",
+        col=c('salmon1', "firebrick1", 'cornflowerblue'))
+  legendary2(c("Original", "Fixed effect fit", "OLS fit"), col=c('salmon1', "firebrick1", 'cornflowerblue'))
+  mtext(cc, col="blueviolet", line=2, cex=1.25, adj = 0)
+}
+
+```
+
+\newpage
+
+\subsubsection{Statistics for accuracy}
+
+We can measure the goodness of fit using several statistics. We will use the the \textit{mean absolute error} (MAE), \textit{mean squared error} (MSE)
+and the \textit{mean absolute percentage error} (MAPE). These statistics are defined by:
+
+\[
+MSE = \dfrac{1}{n}  \sum_{i=1}^{n}\left( y - \widehat{y} \right)^{2}
+\]
+
+\[
+MAE = \dfrac{1}{n}  \sum_{i=1}^{n}\left| y - \widehat{y} \right|
+\]
+
+\[
+MAPE = \dfrac{100}{n}  \sum_{i=1}^{n}\left| \dfrac{y - \widehat{y}}{y} \right| 
+\]
+
+\begin{center}
+
+```{r forecast accuracy, echo=F, results= "asis", fig.pos="H"}
+  
+fdt <- pdata[, c("Country", "Date", "Total.Arrivals", "fc.fixed.effect", 'fc.OLS')]
+fdt$Total.Arrivals  <- exp(fdt$Total.Arrivals)
+fdt$fc.fixed.effect <- exp(fdt$fc.fixed.effect)
+fdt$fc.OLS          <- exp(fdt$fc.OLS)
+
+accuracy.table <- matrix(ncol=2, nrow=3) %>% as.data.frame()
+colnames(accuracy.table) <- c("OLS", "Fixed effects")
+rownames(accuracy.table) <- c("MSE", "MAPE", "MAE")
+
+## MSE:
+
+accuracy.table[1, 1] <- MSE(fdt$Total.Arrivals, fdt$fc.OLS)
+accuracy.table[1, 2] <- MSE(fdt$Total.Arrivals, fdt$fc.fixed.effect)
+
+## MAPE
+
+accuracy.table[2, 1] <- MAPE(fdt$Total.Arrivals, fdt$fc.OLS)
+accuracy.table[2, 2] <- MAPE(fdt$Total.Arrivals, fdt$fc.fixed.effect)
+
+## MAE
+
+accuracy.table[3, 1] <- MAE(fdt$Total.Arrivals, fdt$fc.OLS)
+accuracy.table[3, 2] <- MAE(fdt$Total.Arrivals, fdt$fc.fixed.effect)
+
+
+
+kable(accuracy.table, format = "latex", row.names = T, caption = "Table for accuracy")
+```
+
+\end{center}
+
+As we can see from figure 7 and the statistics for accuracy table the fixed effects models' predictions are much closer to the original values. 
 
 
 
