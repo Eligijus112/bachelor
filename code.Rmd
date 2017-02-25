@@ -635,6 +635,16 @@ MAE = \dfrac{1}{n}  \sum_{i=1}^{n}\left| y - \widehat{y} \right|
 MAPE = \dfrac{100}{n}  \sum_{i=1}^{n}\left| \dfrac{y - \widehat{y}}{y} \right| 
 \]
 
+Here
+
+$\widehat{y}$ - fitted value
+
+$y$ - original value
+
+
+$n$ - number of observations
+
+
 \begin{center}
 
 ```{r forecast accuracy, echo=F, results= "asis", fig.pos="H"}
