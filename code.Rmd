@@ -240,7 +240,7 @@ $GDP_{it}$ - GDP per capita at a country i at time period t, thousands
 
 $terror_{it}$ - total number of terrorist attacks at country i at time period t
 
-$hours_{it}$ - average numbers of hours worked annualy at country i at time period t
+$hours_{it}$ - average numbers of hours worked annualy of country's i 5 closest neighbors at time period t
 
 $neighbours_{i}$ - a factor variable indicating whether a country has a "good" geographical location or not. The measure of goodness is whether a country has at least 5 or more surounding countries which the smallest distance to country i is smaller than 100 km.
 
@@ -345,6 +345,72 @@ plot(p)
 
 As we can see from figure 6 the overal downwards trend of the working annaul working hours' average is true to the OECD countries.
 
+```{r creating a new hours worked variable, include=FALSE, echo=F}
+
+## For this analysis we will be creating a new variable regarding the average of hours worked in the neighboring countries of a given country
+## This variable helps to explain the impact of the decline in the average working hours for the total number of arrivals to a given country
+
+dmat <- read.csv(paste0(path, "GeoCountries/distances.csv"), header = F)
+colnames(dmat) <- dmat[1, ]
+rownames(dmat) <- dmat[1, ]
+dmat <- dmat[-1, -1] 
+
+dmat <- as.data.frame(dmat)
+  
+names.on.file <- colnames(dmat)
+decode <- merge(data.frame(cown=as.numeric(names.on.file)), countrycode_data[, c("country.name", "cown")], sort=F)
+  
+decode$country.name <- gsub("Korea, Republic of", "South Korea", decode$country.name)
+decode$country.name <- gsub("Slovakia", "Slovak Republic", decode$country.name)
+  
+colnames(dmat) <- decode$country.name
+rownames(dmat) <- decode$country.name
+
+
+# leaving only OECD countries
+
+dmat <- dmat[, which(colnames(dmat) %in% unique(master.data$Country))]
+dmat <- dmat[which(rownames(dmat) %in% unique(master.data$Country)), ]
+
+master.data <- ddply(master.data, ~Country, function(xframe){
+  
+  xframe <<- xframe
+  
+  # friend <- rownames(dmat)[which(dmat[, xframe$Country[1]]<500)] 
+  # 
+  # friend <- friend[-which(friend==xframe$Country[1])]
+  #  
+  # if(length(friend)==0){
+    
+    friend <- rownames(dmat)[which(dmat[, xframe$Country[1]] %in% sort(dmat[, xframe$Country[1]])[1:5])] 
+
+    friend <- friend[-which(friend==xframe$Country[1])]
+     
+  # }
+
+  new.ave <- master.data[master.data$Country %in% friend, ]
+  
+  new.ave <- ddply(new.ave, ~Date, function(yframe){
+    
+    yframe <<- yframe
+    
+    yframe[nrow(yframe), "Hours.worked"] <- mean(yframe$Hours.worked)
+    
+    yframe <- yframe[nrow(yframe), ]
+    yframe$Country <- "OECD"
+  
+    return(yframe)  
+  })
+  
+  dates <- intersect(new.ave$Date, xframe$Date)
+  xframe[xframe$Date %in% dates, "Hours.worked"] <- new.ave[new.ave$Date %in% dates, "Hours.worked"]
+  return(xframe)
+  
+})
+
+
+```
+
 \newpage
 
 \section{Modelling}
@@ -439,8 +505,8 @@ kable(tail(pdata), format = "latex", row.names = F)
 
 ```{r pooling panel model, include=FALSE, echo=F}
 
-model <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked + Numb.neighbour , data=pdata, model="pooling")
-# summary(model)
+model.ols <- lm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked + Numb.neighbour , data=pdata)
+# summary(model.ols)
 ```
 
 \subsubsection{Pooling estimator}
@@ -459,31 +525,41 @@ And the estimator is derived solving the equation:
 
 
 ```{r, results='asis', echo=F, warning=F, fig.pos="h"}
-  texreg(model, caption = "OLS model", custom.coef.names = c("Intercept", "log attacks", "log GDP", "log Hours", "neighbours"))
+  texreg(model.ols, caption = "OLS model", custom.coef.names = c("Intercept", "log attacks", "log GDP", "log Hours", "neighbours"))
 ```
 
 According to this model, there is a positive influence to tourism caused by terrorist attacks, which is not logical. Given that this model does not take into consideration the panel structure of the data, we will not be using straighforward OLS in our analysis. 
 
 \newpage
 
-\subsubsection{Random effects model}
+\subsubsection{Fixed effects model}
 
-In this section we will be creating a random effects panel data model. Recall equation (1). The $\alpha_{i}$ is called the \textit{individual effect}.
-If $\alpha_{i}$ does not correlate with $X_{it}$ then the panel model can be reffered to as a random effects model. 
+In this section we will be creating a fixed effects panel data model. Recall equation (1). The $\alpha_{i}$ is called the \textit{individual effect}.
+If $\alpha_{i}$ does correlate with $X_{it}$ then the panel model can be reffered to as a fixed effects model. 
 
-```{r random effects model, include=FALSE, echo=F}
+```{r fixed effects model, include=FALSE, echo=F}
 
-model <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked + Numb.neighbour , data=pdata, model="within")
-# summary(model)
+model.fixed <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked + Numb.neighbour , data=pdata, model="within")
+# summary(model.fixed)
 ```
 
 ```{r, results='asis', echo=F, warning=F, fig.pos="h"}
-  texreg(model, caption = "Random effects model", custom.coef.names = c("log attacks", "log GDP", "log Hours"))
+  texreg(model.fixed, caption = "Fixed effects model", custom.coef.names = c("log attacks", "log GDP", "log Hours"), digits = 3)
 ```
 
-As we can see from table 2 now the coefficients are logical - one terrorist attack can lead to about 0.4 percent decline in tourist arrivals. A one percent increase in GDP per capita can lead up to 0.4 increase in tourist arrivals and decreasing 1 percent of hours worked within a country leads to 2.5 percent more tourist arrivals. The first two effects explanation is quite straightforward. 
+As we can see from table 2 now the coefficients are logical - one terrorist attack can lead to about 0.5 percent decline in tourist arrivals. A one percent increase in GDP per capita can lead up to 0.5 increase in tourist arrivals and decreasing 1 percent of hours worked within neighboring countries leads to 0.43 percent more tourist arrivals. Table 2 does not include the intercept term and the the factor variable regarding its "goodness" of geographical place. 
 
+The intercept is missing because every country &\textbf{i}& has it's own intercept value and those values are not displayed in model output. This is the main goal of the fixed effects model because we get a different level for every country thus we take into account the heterogeneity across countries and time.
 
+The factor variable is missing because it does not change over time and the overall effect is 'transfered' to the intercept. 
+
+Applying the F test for individual effects gives the result:
+
+```{r pFtest, echo=T, comment=NA}
+  pFtest(model.fixed, model.ols)
+```
+
+According to these results the fixed effects model is better in explaining the number of arrivals compared to the OLS model.
 
 
 
