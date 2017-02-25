@@ -29,7 +29,6 @@ temp/*
 data/*
 *.Rproj
 output/*
-input/*
 *.pdf
 html files/*
 *.html

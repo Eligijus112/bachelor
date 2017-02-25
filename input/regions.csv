@@ -1,0 +1,970 @@
+Region,CountryCode,Country
+Western Europe,AT,Austria
+Western Europe,BE,Belgium
+Western Europe,CH,Switzerland
+Western Europe,CY,Cyprus
+Western Europe,DE,Germany
+Western Europe,DK,Denmark
+Western Europe,ES,Spain
+Western Europe,FI,Finland
+Western Europe,FR,France
+Western Europe,GB,United Kingdom
+Western Europe,GI,Gibraltar
+Western Europe,GR,Greece
+Western Europe,IC,Iceland
+Western Europe,IE,Ireland
+Western Europe,IT,Italy
+Western Europe,LI,Liechtenstein
+Western Europe,LX,Luxembourg
+Western Europe,MN,Monaco
+Western Europe,MT,Malta
+Western Europe,NL,Netherlands
+Western Europe,NO,Norway
+Western Europe,PT,Portugal
+Western Europe,RR,Andorra
+Western Europe,SE,Sweden
+Western Europe,TR,Turkey
+Eastern Europe,AB,Albania
+Eastern Europe,BL,Belarus
+Eastern Europe,BS,Bosnia-Herzegovina
+Eastern Europe,BU,Bulgaria
+Eastern Europe,CR,Croatia
+Eastern Europe,CS,Czech Republic
+Eastern Europe,ET,Estonia
+Eastern Europe,GG,Georgia
+Eastern Europe,HU,Hungary
+Eastern Europe,LA,Latvia
+Eastern Europe,LT,Lithuania
+Eastern Europe,MD,Macedonia
+Eastern Europe,MV,Moldova
+Eastern Europe,PL,Poland
+Eastern Europe,RO,Romania
+Eastern Europe,RU,Russia
+Eastern Europe,SK,Slovakia
+Eastern Europe,SV,Slovenia
+Eastern Europe,UK,Ukraine
+Eastern Europe,RS,Serbia
+Eastern Europe,KS,Kosovo
+Eastern Europe,ME,Montenegro
+Europe,AB,Albania
+Europe,AT,Austria
+Europe,BE,Belgium
+Europe,BL,Belarus
+Europe,BS,Bosnia-Herzegovina
+Europe,BU,Bulgaria
+Europe,CH,Switzerland
+Europe,CR,Croatia
+Europe,CS,Czech Republic
+Europe,CY,Cyprus
+Europe,DE,Germany
+Europe,DK,Denmark
+Europe,ES,Spain
+Europe,ET,Estonia
+Europe,FI,Finland
+Europe,FR,France
+Europe,GB,United Kingdom
+Europe,GG,Georgia
+Europe,GI,Gibraltar
+Europe,GR,Greece
+Europe,HU,Hungary
+Europe,IC,Iceland
+Europe,IE,Ireland
+Europe,IT,Italy
+Europe,LA,Latvia
+Europe,LI,Liechtenstein
+Europe,LT,Lithuania
+Europe,LX,Luxembourg
+Europe,MD,Macedonia
+Europe,MN,Monaco
+Europe,MT,Malta
+Europe,MV,Moldova
+Europe,NL,Netherlands
+Europe,NO,Norway
+Europe,PL,Poland
+Europe,PT,Portugal
+Europe,RO,Romania
+Europe,RR,Andorra
+Europe,RU,Russia
+Europe,SE,Sweden
+Europe,SK,Slovakia
+Europe,SV,Slovenia
+Europe,TR,Turkey
+Europe,UK,Ukraine
+Europe,RS,Serbia
+Europe,KS,Kosovo
+Europe,ME,Montenegro
+North America,CA,Canada
+North America,US,United States
+Latin America,AA,Antigua
+Latin America,AI,Anguilla
+Latin America,AR,Argentina
+Latin America,AZ,Aruba
+Latin America,BB,Barbados
+Latin America,BD,Bermuda
+Latin America,BM,Bahamas
+Latin America,BR,Brazil
+Latin America,BV,Bolivia
+Latin America,BZ,Belize
+Latin America,CL,Chile
+Latin America,CM,Cayman Islands
+Latin America,CO,Colombia
+Latin America,CU,Cuba
+Latin America,DM,Dominica
+Latin America,DR,Dominican Republic
+Latin America,EC,Ecuador
+Latin America,FG,French Guiana
+Latin America,GD,Grenada
+Latin America,GP,Guadeloupe
+Latin America,GT,Guatemala
+Latin America,GY,Guyana
+Latin America,HD,Honduras
+Latin America,HT,Haiti
+Latin America,JM,Jamaica
+Latin America,KT,St Kitts
+Latin America,LC,St Lucia
+Latin America,LS,El Salvador
+Latin America,MQ,Martinique
+Latin America,MX,Mexico
+Latin America,NC,Nicaragua
+Latin America,PG,Paraguay
+Latin America,PM,Panama
+Latin America,PR,Puerto Rico
+Latin America,PU,Peru
+Latin America,RI,Costa Rica
+Latin America,SU,Suriname
+Latin America,TT,Trinidad and Tobago
+Latin America,UY,Uruguay
+Latin America,VE,Venezuela
+Latin America,VG,St Vincent and the Grenadines
+Latin America,VI,British Virgin Islands
+Latin America,CC,Curacao
+Latin America,SM,Sint Maarten
+Latin America,UV,US Virgin Islands
+Americas,AA,Antigua
+Americas,AI,Anguilla
+Americas,AR,Argentina
+Americas,AZ,Aruba
+Americas,BB,Barbados
+Americas,BD,Bermuda
+Americas,BM,Bahamas
+Americas,BR,Brazil
+Americas,BV,Bolivia
+Americas,BZ,Belize
+Americas,CA,Canada
+Americas,CL,Chile
+Americas,CM,Cayman Islands
+Americas,CO,Colombia
+Americas,CU,Cuba
+Americas,DM,Dominica
+Americas,DR,Dominican Republic
+Americas,EC,Ecuador
+Americas,FG,French Guiana
+Americas,GD,Grenada
+Americas,GP,Guadeloupe
+Americas,GT,Guatemala
+Americas,GY,Guyana
+Americas,HD,Honduras
+Americas,HT,Haiti
+Americas,JM,Jamaica
+Americas,KT,St Kitts
+Americas,LC,St Lucia
+Americas,LS,El Salvador
+Americas,MQ,Martinique
+Americas,MX,Mexico
+Americas,NC,Nicaragua
+Americas,PG,Paraguay
+Americas,PM,Panama
+Americas,PR,Puerto Rico
+Americas,PU,Peru
+Americas,RI,Costa Rica
+Americas,SU,Suriname
+Americas,TT,Trinidad and Tobago
+Americas,US,United States
+Americas,UY,Uruguay
+Americas,VE,Venezuela
+Americas,VG,St Vincent and the Grenadines
+Americas,VI,British Virgin Islands
+Americas,CC,Curacao
+Americas,SM,Sint Maarten
+Americas,UV,US Virgin Islands
+Asia Pacific,AF,Afghanistan
+Asia Pacific,AJ,Azerbaijan
+Asia Pacific,AM,Armenia
+Asia Pacific,AO,Laos
+Asia Pacific,AS,American Samoa
+Asia Pacific,BG,Bangladesh
+Asia Pacific,BN,Bhutan
+Asia Pacific,CB,Cambodia
+Asia Pacific,CN,China
+Asia Pacific,EI,Brunei
+Asia Pacific,FJ,Fiji
+Asia Pacific,FP,French Polynesia
+Asia Pacific,GM,Guam
+Asia Pacific,HK,"Hong Kong, China"
+Asia Pacific,ID,Indonesia
+Asia Pacific,IN,India
+Asia Pacific,JP,Japan
+Asia Pacific,KA,Sri Lanka
+Asia Pacific,KB,Kiribati
+Asia Pacific,KK,Kazakhstan
+Asia Pacific,KR,South Korea
+Asia Pacific,KZ,Kyrgyzstan
+Asia Pacific,MA,Maldives
+Asia Pacific,ML,Mongolia
+Asia Pacific,MR,Myanmar
+Asia Pacific,MU,Macau
+Asia Pacific,MY,Malaysia
+Asia Pacific,NK,North Korea
+Asia Pacific,NP,Nepal
+Asia Pacific,NU,Nauru
+Asia Pacific,NW,New Caledonia
+Asia Pacific,PH,Philippines
+Asia Pacific,PK,Pakistan
+Asia Pacific,PP,Papua New Guinea
+Asia Pacific,SG,Singapore
+Asia Pacific,SI,Solomon Islands
+Asia Pacific,TG,Tonga
+Asia Pacific,TH,Thailand
+Asia Pacific,TK,Tajikistan
+Asia Pacific,TM,Turkmenistan
+Asia Pacific,TV,Tuvalu
+Asia Pacific,TW,Taiwan
+Asia Pacific,UZ,Uzbekistan
+Asia Pacific,VN,Vietnam
+Asia Pacific,VT,Vanuatu
+Asia Pacific,WS,Samoa
+Australasia,AU,Australia
+Australasia,NZ,New Zealand
+Africa and Middle East,AC,Central African Republic
+Africa and Middle East,AG,Angola
+Africa and Middle East,AL,Algeria
+Africa and Middle East,BF,Burkina Faso
+Africa and Middle East,BH,Bahrain
+Africa and Middle East,BI,Benin
+Africa and Middle East,CD,Chad
+Africa and Middle East,CG,Congo-Brazzaville
+Africa and Middle East,CI,C?te d'Ivoire
+Africa and Middle East,CP,Sao Tomé e Pr?ncipe
+Africa and Middle East,CV,Cape Verde
+Africa and Middle East,DJ,Djibouti
+Africa and Middle East,EE,Eritrea
+Africa and Middle East,EG,Egypt
+Africa and Middle East,EP,Ethiopia
+Africa and Middle East,EQ,Equatorial Guinea
+Africa and Middle East,GC,Madagascar
+Africa and Middle East,GH,Ghana
+Africa and Middle East,GO,Gabon
+Africa and Middle East,GU,Guinea
+Africa and Middle East,IQ,Iraq
+Africa and Middle East,IR,Iran
+Africa and Middle East,IS,Israel
+Africa and Middle East,JO,Jordan
+Africa and Middle East,KW,Kuwait
+Africa and Middle East,KY,Kenya
+Africa and Middle East,LB,Lebanon
+Africa and Middle East,LE,Liberia
+Africa and Middle East,LN,Sierra Leone
+Africa and Middle East,LO,Lesotho
+Africa and Middle East,LY,Libya
+Africa and Middle East,MB,Gambia
+Africa and Middle East,MI,Mali
+Africa and Middle East,MM,Mauritania
+Africa and Middle East,MO,Morocco
+Africa and Middle East,MS,Comoros
+Africa and Middle East,MW,Malawi
+Africa and Middle East,NB,Namibia
+Africa and Middle East,NG,Nigeria
+Africa and Middle East,NN,Niger
+Africa and Middle East,OM,Oman
+Africa and Middle East,OO,Cameroon
+Africa and Middle East,QT,Qatar
+Africa and Middle East,RW,Rwanda
+Africa and Middle East,SA,Saudi Arabia
+Africa and Middle East,SD,Sudan
+Africa and Middle East,SL,Senegal
+Africa and Middle East,SO,Somalia
+Africa and Middle East,SS,Guinea-Bissau
+Africa and Middle East,SW,Botswana
+Africa and Middle East,SY,Syria
+Africa and Middle East,SZ,Swaziland
+Africa and Middle East,TO,Togo
+Africa and Middle East,TS,Mauritius
+Africa and Middle East,TU,Tunisia
+Africa and Middle East,TZ,Tanzania
+Africa and Middle East,UA,United Arab Emirates
+Africa and Middle East,UG,Uganda
+Africa and Middle East,UN,Réunion
+Africa and Middle East,UU,Burundi
+Africa and Middle East,YC,Seychelles
+Africa and Middle East,YE,Yemen
+Africa and Middle East,ZA,South Africa
+Africa and Middle East,ZB,Zambia
+Africa and Middle East,ZI,"Congo, Democratic Republic"
+Africa and Middle East,ZM,Mozambique
+Africa and Middle East,ZW,Zimbabwe
+Africa and Middle East,SN,South Sudan
+APEC,AU,Australia
+APEC,CA,Canada
+APEC,CL,Chile
+APEC,CN,China
+APEC,EI,Brunei
+APEC,HK,"Hong Kong, China"
+APEC,ID,Indonesia
+APEC,JP,Japan
+APEC,KR,South Korea
+APEC,MX,Mexico
+APEC,MY,Malaysia
+APEC,NZ,New Zealand
+APEC,PH,Philippines
+APEC,PP,Papua New Guinea
+APEC,PU,Peru
+APEC,RU,Russia
+APEC,SG,Singapore
+APEC,TH,Thailand
+APEC,TW,Taiwan
+APEC,US,United States
+APEC,VN,Vietnam
+ASEAN,AO,Laos
+ASEAN,CB,Cambodia
+ASEAN,EI,Brunei
+ASEAN,ID,Indonesia
+ASEAN,MR,Myanmar
+ASEAN,MY,Malaysia
+ASEAN,PH,Philippines
+ASEAN,SG,Singapore
+ASEAN,TH,Thailand
+ASEAN,VN,Vietnam
+EU,AT,Austria
+EU,BE,Belgium
+EU,BU,Bulgaria
+EU,CS,Czech Republic
+EU,CY,Cyprus
+EU,DE,Germany
+EU,DK,Denmark
+EU,ES,Spain
+EU,ET,Estonia
+EU,FI,Finland
+EU,FR,France
+EU,GB,United Kingdom
+EU,GR,Greece
+EU,HU,Hungary
+EU,IE,Ireland
+EU,IT,Italy
+EU,LA,Latvia
+EU,LT,Lithuania
+EU,LX,Luxembourg
+EU,MT,Malta
+EU,NL,Netherlands
+EU,PL,Poland
+EU,PT,Portugal
+EU,RO,Romania
+EU,SE,Sweden
+EU,SK,Slovakia
+EU,SV,Slovenia
+EuroZone,AT,Austria
+EuroZone,BE,Belgium
+EuroZone,CY,Cyprus
+EuroZone,DE,Germany
+EuroZone,ES,Spain
+EuroZone,ET,Estonia
+EuroZone,FI,Finland
+EuroZone,FR,France
+EuroZone,GR,Greece
+EuroZone,IE,Ireland
+EuroZone,IT,Italy
+EuroZone,LX,Luxembourg
+EuroZone,MT,Malta
+EuroZone,NL,Netherlands
+EuroZone,PT,Portugal
+EuroZone,SK,Slovakia
+EuroZone,SV,Slovenia
+Mercosur,AR,Argentina
+Mercosur,BR,Brazil
+Mercosur,PG,Paraguay
+Mercosur,UY,Uruguay
+NAFTA,CA,Canada
+NAFTA,MX,Mexico
+NAFTA,PR,Puerto Rico
+NAFTA,US,United States
+OECD,AT,Austria
+OECD,AU,Australia
+OECD,BE,Belgium
+OECD,CA,Canada
+OECD,CH,Switzerland
+OECD,CL,Chile
+OECD,CS,Czech Republic
+OECD,DE,Germany
+OECD,DK,Denmark
+OECD,ES,Spain
+OECD,ET,Estonia
+OECD,FI,Finland
+OECD,FR,France
+OECD,GB,United Kingdom
+OECD,GR,Greece
+OECD,HU,Hungary
+OECD,IC,Iceland
+OECD,IE,Ireland
+OECD,IS,Israel
+OECD,IT,Italy
+OECD,JP,Japan
+OECD,KR,South Korea
+OECD,LX,Luxembourg
+OECD,MX,Mexico
+OECD,NL,Netherlands
+OECD,NO,Norway
+OECD,NZ,New Zealand
+OECD,PL,Poland
+OECD,PT,Portugal
+OECD,SE,Sweden
+OECD,SK,Slovakia
+OECD,SV,Slovenia
+OECD,TR,Turkey
+OECD,US,United States
+G8,CA,Canada
+G8,DE,Germany
+G8,FR,France
+G8,GB,United Kingdom
+G8,IT,Italy
+G8,JP,Japan
+G8,RU,Russia
+G8,US,United States
+World,AA,Antigua
+World,AB,Albania
+World,AC,Central African Republic
+World,AF,Afghanistan
+World,AG,Angola
+World,AI,Anguilla
+World,AJ,Azerbaijan
+World,AL,Algeria
+World,AM,Armenia
+World,AO,Laos
+World,AR,Argentina
+World,AS,American Samoa
+World,AT,Austria
+World,AU,Australia
+World,AZ,Aruba
+World,BB,Barbados
+World,BD,Bermuda
+World,BE,Belgium
+World,BF,Burkina Faso
+World,BG,Bangladesh
+World,BH,Bahrain
+World,BI,Benin
+World,BL,Belarus
+World,BM,Bahamas
+World,BN,Bhutan
+World,BR,Brazil
+World,BS,Bosnia-Herzegovina
+World,BU,Bulgaria
+World,BV,Bolivia
+World,BZ,Belize
+World,CA,Canada
+World,CB,Cambodia
+World,CD,Chad
+World,CG,Congo-Brazzaville
+World,CH,Switzerland
+World,CI,C?te d'Ivoire
+World,CL,Chile
+World,CM,Cayman Islands
+World,CN,China
+World,CO,Colombia
+World,CP,Sao Tomé e Pr?ncipe
+World,CR,Croatia
+World,CS,Czech Republic
+World,CU,Cuba
+World,CV,Cape Verde
+World,CY,Cyprus
+World,DE,Germany
+World,DJ,Djibouti
+World,DK,Denmark
+World,DM,Dominica
+World,DR,Dominican Republic
+World,EC,Ecuador
+World,EE,Eritrea
+World,EG,Egypt
+World,EI,Brunei
+World,EP,Ethiopia
+World,EQ,Equatorial Guinea
+World,ES,Spain
+World,ET,Estonia
+World,FG,French Guiana
+World,FI,Finland
+World,FJ,Fiji
+World,FP,French Polynesia
+World,FR,France
+World,GB,United Kingdom
+World,GC,Madagascar
+World,GD,Grenada
+World,GG,Georgia
+World,GH,Ghana
+World,GI,Gibraltar
+World,GM,Guam
+World,GO,Gabon
+World,GP,Guadeloupe
+World,GR,Greece
+World,GT,Guatemala
+World,GU,Guinea
+World,GY,Guyana
+World,HD,Honduras
+World,HK,"Hong Kong, China"
+World,HT,Haiti
+World,HU,Hungary
+World,IC,Iceland
+World,ID,Indonesia
+World,IE,Ireland
+World,IN,India
+World,IQ,Iraq
+World,IR,Iran
+World,IS,Israel
+World,IT,Italy
+World,JM,Jamaica
+World,JO,Jordan
+World,JP,Japan
+World,KA,Sri Lanka
+World,KB,Kiribati
+World,KK,Kazakhstan
+World,KR,South Korea
+World,KT,St Kitts
+World,KW,Kuwait
+World,KY,Kenya
+World,KZ,Kyrgyzstan
+World,LA,Latvia
+World,LB,Lebanon
+World,LC,St Lucia
+World,LE,Liberia
+World,LI,Liechtenstein
+World,LN,Sierra Leone
+World,LO,Lesotho
+World,LS,El Salvador
+World,LT,Lithuania
+World,LX,Luxembourg
+World,LY,Libya
+World,MA,Maldives
+World,MB,Gambia
+World,MD,Macedonia
+World,MI,Mali
+World,ML,Mongolia
+World,MM,Mauritania
+World,MN,Monaco
+World,MO,Morocco
+World,MQ,Martinique
+World,MR,Myanmar
+World,MS,Comoros
+World,MT,Malta
+World,MU,Macau
+World,MV,Moldova
+World,MW,Malawi
+World,MX,Mexico
+World,MY,Malaysia
+World,NB,Namibia
+World,NC,Nicaragua
+World,NG,Nigeria
+World,NK,North Korea
+World,NL,Netherlands
+World,NN,Niger
+World,NO,Norway
+World,NP,Nepal
+World,NU,Nauru
+World,NW,New Caledonia
+World,NZ,New Zealand
+World,OM,Oman
+World,OO,Cameroon
+World,PG,Paraguay
+World,PH,Philippines
+World,PK,Pakistan
+World,PL,Poland
+World,PM,Panama
+World,PP,Papua New Guinea
+World,PR,Puerto Rico
+World,PT,Portugal
+World,PU,Peru
+World,QT,Qatar
+World,RI,Costa Rica
+World,RO,Romania
+World,RR,Andorra
+World,RU,Russia
+World,RW,Rwanda
+World,SA,Saudi Arabia
+World,SD,Sudan
+World,SE,Sweden
+World,SG,Singapore
+World,SI,Solomon Islands
+World,SK,Slovakia
+World,SL,Senegal
+World,SO,Somalia
+World,SS,Guinea-Bissau
+World,SU,Suriname
+World,SV,Slovenia
+World,SW,Botswana
+World,SY,Syria
+World,SZ,Swaziland
+World,TG,Tonga
+World,TH,Thailand
+World,TK,Tajikistan
+World,TM,Turkmenistan
+World,TO,Togo
+World,TR,Turkey
+World,TS,Mauritius
+World,TT,Trinidad and Tobago
+World,TU,Tunisia
+World,TV,Tuvalu
+World,TW,Taiwan
+World,TZ,Tanzania
+World,UA,United Arab Emirates
+World,UG,Uganda
+World,UK,Ukraine
+World,UN,Réunion
+World,US,United States
+World,UU,Burundi
+World,UY,Uruguay
+World,UZ,Uzbekistan
+World,VE,Venezuela
+World,VG,St Vincent and the Grenadines
+World,VI,British Virgin Islands
+World,VN,Vietnam
+World,VT,Vanuatu
+World,WS,Samoa
+World,YC,Seychelles
+World,YE,Yemen
+World,ZA,South Africa
+World,ZB,Zambia
+World,ZI,"Congo, Democratic Republic"
+World,ZM,Mozambique
+World,ZW,Zimbabwe
+World,RS,Serbia
+World,KS,Kosovo
+World,ME,Montenegro
+World,CC,Curacao
+World,SM,Sint Maarten
+World,SN,South Sudan
+World,UV,US Virgin Islands
+GCC,BH,Bahrain
+GCC,KW,Kuwait
+GCC,OM,Oman
+GCC,QT,Qatar
+GCC,SA,Saudi Arabia
+GCC,UA,United Arab Emirates
+BRIC,BR,Brazil
+BRIC,CN,China
+BRIC,IN,India
+BRIC,RU,Russia
+Developed countries,AT,Austria
+Developed countries,AU,Australia
+Developed countries,BD,Bermuda
+Developed countries,BE,Belgium
+Developed countries,CA,Canada
+Developed countries,CH,Switzerland
+Developed countries,CS,Czech Republic
+Developed countries,CY,Cyprus
+Developed countries,DE,Germany
+Developed countries,DK,Denmark
+Developed countries,ES,Spain
+Developed countries,ET,Estonia
+Developed countries,FI,Finland
+Developed countries,FR,France
+Developed countries,GB,United Kingdom
+Developed countries,GR,Greece
+Developed countries,HK,"Hong Kong, China"
+Developed countries,IC,Iceland
+Developed countries,IE,Ireland
+Developed countries,IS,Israel
+Developed countries,IT,Italy
+Developed countries,JP,Japan
+Developed countries,KR,South Korea
+Developed countries,LI,Liechtenstein
+Developed countries,LX,Luxembourg
+Developed countries,MN,Monaco
+Developed countries,MT,Malta
+Developed countries,NL,Netherlands
+Developed countries,NO,Norway
+Developed countries,NZ,New Zealand
+Developed countries,PT,Portugal
+Developed countries,RR,Andorra
+Developed countries,SE,Sweden
+Developed countries,SG,Singapore
+Developed countries,SK,Slovakia
+Developed countries,SV,Slovenia
+Developed countries,TW,Taiwan
+Developed countries,US,United States
+Emerging and developing countries,AA,Antigua
+Emerging and developing countries,AB,Albania
+Emerging and developing countries,AC,Central African Republic
+Emerging and developing countries,AF,Afghanistan
+Emerging and developing countries,AG,Angola
+Emerging and developing countries,AI,Anguilla
+Emerging and developing countries,AJ,Azerbaijan
+Emerging and developing countries,AL,Algeria
+Emerging and developing countries,AM,Armenia
+Emerging and developing countries,AO,Laos
+Emerging and developing countries,AR,Argentina
+Emerging and developing countries,AS,American Samoa
+Emerging and developing countries,AZ,Aruba
+Emerging and developing countries,BB,Barbados
+Emerging and developing countries,BF,Burkina Faso
+Emerging and developing countries,BG,Bangladesh
+Emerging and developing countries,BH,Bahrain
+Emerging and developing countries,BI,Benin
+Emerging and developing countries,BL,Belarus
+Emerging and developing countries,BM,Bahamas
+Emerging and developing countries,BN,Bhutan
+Emerging and developing countries,BR,Brazil
+Emerging and developing countries,BS,Bosnia-Herzegovina
+Emerging and developing countries,BU,Bulgaria
+Emerging and developing countries,BV,Bolivia
+Emerging and developing countries,BZ,Belize
+Emerging and developing countries,CB,Cambodia
+Emerging and developing countries,CD,Chad
+Emerging and developing countries,CG,Congo-Brazzaville
+Emerging and developing countries,CI,C?te d'Ivoire
+Emerging and developing countries,CL,Chile
+Emerging and developing countries,CM,Cayman Islands
+Emerging and developing countries,CN,China
+Emerging and developing countries,CO,Colombia
+Emerging and developing countries,CP,Sao Tomé e Pr?ncipe
+Emerging and developing countries,CR,Croatia
+Emerging and developing countries,CU,Cuba
+Emerging and developing countries,CV,Cape Verde
+Emerging and developing countries,DJ,Djibouti
+Emerging and developing countries,DM,Dominica
+Emerging and developing countries,DR,Dominican Republic
+Emerging and developing countries,EC,Ecuador
+Emerging and developing countries,EE,Eritrea
+Emerging and developing countries,EG,Egypt
+Emerging and developing countries,EI,Brunei
+Emerging and developing countries,EP,Ethiopia
+Emerging and developing countries,EQ,Equatorial Guinea
+Emerging and developing countries,FG,French Guiana
+Emerging and developing countries,FJ,Fiji
+Emerging and developing countries,FP,French Polynesia
+Emerging and developing countries,GC,Madagascar
+Emerging and developing countries,GD,Grenada
+Emerging and developing countries,GG,Georgia
+Emerging and developing countries,GH,Ghana
+Emerging and developing countries,GI,Gibraltar
+Emerging and developing countries,GM,Guam
+Emerging and developing countries,GO,Gabon
+Emerging and developing countries,GP,Guadeloupe
+Emerging and developing countries,GT,Guatemala
+Emerging and developing countries,GU,Guinea
+Emerging and developing countries,GY,Guyana
+Emerging and developing countries,HD,Honduras
+Emerging and developing countries,HT,Haiti
+Emerging and developing countries,HU,Hungary
+Emerging and developing countries,ID,Indonesia
+Emerging and developing countries,IN,India
+Emerging and developing countries,IQ,Iraq
+Emerging and developing countries,IR,Iran
+Emerging and developing countries,JM,Jamaica
+Emerging and developing countries,JO,Jordan
+Emerging and developing countries,KA,Sri Lanka
+Emerging and developing countries,KB,Kiribati
+Emerging and developing countries,KK,Kazakhstan
+Emerging and developing countries,KT,St Kitts
+Emerging and developing countries,KW,Kuwait
+Emerging and developing countries,KY,Kenya
+Emerging and developing countries,KZ,Kyrgyzstan
+Emerging and developing countries,LA,Latvia
+Emerging and developing countries,LB,Lebanon
+Emerging and developing countries,LC,St Lucia
+Emerging and developing countries,LE,Liberia
+Emerging and developing countries,LN,Sierra Leone
+Emerging and developing countries,LO,Lesotho
+Emerging and developing countries,LS,El Salvador
+Emerging and developing countries,LT,Lithuania
+Emerging and developing countries,LY,Libya
+Emerging and developing countries,MA,Maldives
+Emerging and developing countries,MB,Gambia
+Emerging and developing countries,MD,Macedonia
+Emerging and developing countries,MI,Mali
+Emerging and developing countries,ML,Mongolia
+Emerging and developing countries,MM,Mauritania
+Emerging and developing countries,MO,Morocco
+Emerging and developing countries,MQ,Martinique
+Emerging and developing countries,MR,Myanmar
+Emerging and developing countries,MS,Comoros
+Emerging and developing countries,MU,Macau
+Emerging and developing countries,MV,Moldova
+Emerging and developing countries,MW,Malawi
+Emerging and developing countries,MX,Mexico
+Emerging and developing countries,MY,Malaysia
+Emerging and developing countries,NB,Namibia
+Emerging and developing countries,NC,Nicaragua
+Emerging and developing countries,NG,Nigeria
+Emerging and developing countries,NK,North Korea
+Emerging and developing countries,NN,Niger
+Emerging and developing countries,NP,Nepal
+Emerging and developing countries,NU,Nauru
+Emerging and developing countries,NW,New Caledonia
+Emerging and developing countries,OM,Oman
+Emerging and developing countries,OO,Cameroon
+Emerging and developing countries,PG,Paraguay
+Emerging and developing countries,PH,Philippines
+Emerging and developing countries,PK,Pakistan
+Emerging and developing countries,PL,Poland
+Emerging and developing countries,PM,Panama
+Emerging and developing countries,PP,Papua New Guinea
+Emerging and developing countries,PR,Puerto Rico
+Emerging and developing countries,PU,Peru
+Emerging and developing countries,QT,Qatar
+Emerging and developing countries,RI,Costa Rica
+Emerging and developing countries,RO,Romania
+Emerging and developing countries,RU,Russia
+Emerging and developing countries,RW,Rwanda
+Emerging and developing countries,SA,Saudi Arabia
+Emerging and developing countries,SD,Sudan
+Emerging and developing countries,SI,Solomon Islands
+Emerging and developing countries,SL,Senegal
+Emerging and developing countries,SO,Somalia
+Emerging and developing countries,SS,Guinea-Bissau
+Emerging and developing countries,SU,Suriname
+Emerging and developing countries,SW,Botswana
+Emerging and developing countries,SY,Syria
+Emerging and developing countries,SZ,Swaziland
+Emerging and developing countries,TG,Tonga
+Emerging and developing countries,TH,Thailand
+Emerging and developing countries,TK,Tajikistan
+Emerging and developing countries,TM,Turkmenistan
+Emerging and developing countries,TO,Togo
+Emerging and developing countries,TR,Turkey
+Emerging and developing countries,TS,Mauritius
+Emerging and developing countries,TT,Trinidad and Tobago
+Emerging and developing countries,TU,Tunisia
+Emerging and developing countries,TV,Tuvalu
+Emerging and developing countries,TZ,Tanzania
+Emerging and developing countries,UA,United Arab Emirates
+Emerging and developing countries,UG,Uganda
+Emerging and developing countries,UK,Ukraine
+Emerging and developing countries,UN,Réunion
+Emerging and developing countries,UU,Burundi
+Emerging and developing countries,UY,Uruguay
+Emerging and developing countries,UZ,Uzbekistan
+Emerging and developing countries,VE,Venezuela
+Emerging and developing countries,VG,St Vincent and the Grenadines
+Emerging and developing countries,VI,British Virgin Islands
+Emerging and developing countries,VN,Vietnam
+Emerging and developing countries,VT,Vanuatu
+Emerging and developing countries,WS,Samoa
+Emerging and developing countries,YC,Seychelles
+Emerging and developing countries,YE,Yemen
+Emerging and developing countries,ZA,South Africa
+Emerging and developing countries,ZB,Zambia
+Emerging and developing countries,ZI,"Congo, Democratic Republic"
+Emerging and developing countries,ZM,Mozambique
+Emerging and developing countries,ZW,Zimbabwe
+Emerging and developing countries,RS,Serbia
+Emerging and developing countries,KS,Kosovo
+Emerging and developing countries,ME,Montenegro
+Emerging and developing countries,CC,Curacao
+Emerging and developing countries,SM,Sint Maarten
+Emerging and developing countries,SN,South Sudan
+Emerging and developing countries,UV,US Virgin Islands
+G20,AR,Argentina
+G20,AT,Austria
+G20,AU,Australia
+G20,BE,Belgium
+G20,BR,Brazil
+G20,BU,Bulgaria
+G20,CA,Canada
+G20,CN,China
+G20,CS,Czech Republic
+G20,CY,Cyprus
+G20,DE,Germany
+G20,DK,Denmark
+G20,ES,Spain
+G20,ET,Estonia
+G20,FI,Finland
+G20,FR,France
+G20,GB,United Kingdom
+G20,GR,Greece
+G20,HU,Hungary
+G20,ID,Indonesia
+G20,IE,Ireland
+G20,IN,India
+G20,IT,Italy
+G20,JP,Japan
+G20,KR,South Korea
+G20,LA,Latvia
+G20,LT,Lithuania
+G20,LX,Luxembourg
+G20,MT,Malta
+G20,MX,Mexico
+G20,NL,Netherlands
+G20,PL,Poland
+G20,PT,Portugal
+G20,RO,Romania
+G20,RU,Russia
+G20,SA,Saudi Arabia
+G20,SE,Sweden
+G20,SK,Slovakia
+G20,SV,Slovenia
+G20,TR,Turkey
+G20,US,United States
+G20,ZA,South Africa
+Middle East and North Africa,AL,Algeria
+Middle East and North Africa,BH,Bahrain
+Middle East and North Africa,DJ,Djibouti
+Middle East and North Africa,EG,Egypt
+Middle East and North Africa,IQ,Iraq
+Middle East and North Africa,IR,Iran
+Middle East and North Africa,IS,Israel
+Middle East and North Africa,JO,Jordan
+Middle East and North Africa,KW,Kuwait
+Middle East and North Africa,LB,Lebanon
+Middle East and North Africa,LY,Libya
+Middle East and North Africa,MM,Mauritania
+Middle East and North Africa,MO,Morocco
+Middle East and North Africa,OM,Oman
+Middle East and North Africa,QT,Qatar
+Middle East and North Africa,SA,Saudi Arabia
+Middle East and North Africa,SD,Sudan
+Middle East and North Africa,SY,Syria
+Middle East and North Africa,TU,Tunisia
+Middle East and North Africa,UA,United Arab Emirates
+Middle East and North Africa,YE,Yemen
+Sub-Saharan Africa,AC,Central African Republic
+Sub-Saharan Africa,AG,Angola
+Sub-Saharan Africa,BF,Burkina Faso
+Sub-Saharan Africa,BI,Benin
+Sub-Saharan Africa,CD,Chad
+Sub-Saharan Africa,CG,Congo-Brazzaville
+Sub-Saharan Africa,CI,C?te d'Ivoire
+Sub-Saharan Africa,CP,Sao Tomé e Pr?ncipe
+Sub-Saharan Africa,CV,Cape Verde
+Sub-Saharan Africa,EE,Eritrea
+Sub-Saharan Africa,EP,Ethiopia
+Sub-Saharan Africa,EQ,Equatorial Guinea
+Sub-Saharan Africa,GC,Madagascar
+Sub-Saharan Africa,GH,Ghana
+Sub-Saharan Africa,GO,Gabon
+Sub-Saharan Africa,GU,Guinea
+Sub-Saharan Africa,KY,Kenya
+Sub-Saharan Africa,LE,Liberia
+Sub-Saharan Africa,LN,Sierra Leone
+Sub-Saharan Africa,LO,Lesotho
+Sub-Saharan Africa,MB,Gambia
+Sub-Saharan Africa,MI,Mali
+Sub-Saharan Africa,MS,Comoros
+Sub-Saharan Africa,MW,Malawi
+Sub-Saharan Africa,NB,Namibia
+Sub-Saharan Africa,NG,Nigeria
+Sub-Saharan Africa,NN,Niger
+Sub-Saharan Africa,OO,Cameroon
+Sub-Saharan Africa,RW,Rwanda
+Sub-Saharan Africa,SL,Senegal
+Sub-Saharan Africa,SO,Somalia
+Sub-Saharan Africa,SS,Guinea-Bissau
+Sub-Saharan Africa,SW,Botswana
+Sub-Saharan Africa,SZ,Swaziland
+Sub-Saharan Africa,TO,Togo
+Sub-Saharan Africa,TS,Mauritius
+Sub-Saharan Africa,TZ,Tanzania
+Sub-Saharan Africa,UG,Uganda
+Sub-Saharan Africa,UN,Réunion
+Sub-Saharan Africa,UU,Burundi
+Sub-Saharan Africa,YC,Seychelles
+Sub-Saharan Africa,ZA,South Africa
+Sub-Saharan Africa,ZB,Zambia
+Sub-Saharan Africa,ZI,"Congo, Democratic Republic"
+Sub-Saharan Africa,ZM,Mozambique
+Sub-Saharan Africa,ZW,Zimbabwe
+Sub-Saharan Africa,SN,South Sudan

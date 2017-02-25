@@ -551,7 +551,7 @@ make.economy.great.again <- function(dt){
 ## functions to download OECD data for annual hours worked
 
 get_decoder <- function(path, ...){
-  
+  createdir(paste0(path, "OECD"))
   url <- 'http://www.oecd.org/migration/mig/34107835.xls'
   download.file(url, paste0(path, "OECD/decoder.xls"), "internal", quiet = FALSE, mode = "wb",
                 cacheOK = TRUE,
