@@ -133,7 +133,7 @@ runApp(shinyApp(
         cn.info <- total.info[total.info$ISO_A2==iso.2, ]
         reg <- cn.info$GEO3major[1] %>% as.character()
         
-        if(reg=="Latin America and the Caribbean") reg <- "lating america"
+        if(reg=="Latin America and the Caribbean") reg <- "latin america"
         if(reg=="Asia and the Pacific") reg <- "oceania"
         
         malMap <- joinCountryData2Map(OECD.cn, joinCode = "NAME",
