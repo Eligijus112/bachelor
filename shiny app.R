@@ -15,9 +15,21 @@ runApp(shinyApp(
                
                tabPanel("OECD countries info", 
                         
-                        actionButton('download', "Initiate data download"),
-                        uiOutput("select.cn"),
-                        plotOutput('country.map')
+                    sidebarLayout(
+                       sidebarPanel( 
+                          actionButton('download', "Initiate data download"),
+                          uiOutput("select.cn"),
+                          uiOutput('select.eco')
+                         
+                       ),
+                       
+                      mainPanel( 
+                         fluidRow(
+                          column(8,  plotOutput('country.map', height = 600)),
+                          column(12, plotOutput("plot.eco"))
+                         )
+                      )
+                    )
                ),
                
                
@@ -65,6 +77,9 @@ runApp(shinyApp(
         return(xframe)
         
       })
+      
+      dt.oecd <- dt.oecd[dt.oecd$EMPSTAT=="TE", ]
+      dt.oecd[dt.oecd$COUNTRY=="KOR", "COUNTRY"] <- "South Korea"
       
       
       master.data <- aggregate.terror.by.country(dt)
@@ -119,6 +134,8 @@ runApp(shinyApp(
         
       })
       
+      ###
+      
       output$country.map <- renderPlot({
         
         all.regions <- c('eurasia', 'africa',  'latin america', 'north america' , 'uk' , 'oceania', 'asia')
@@ -142,6 +159,28 @@ runApp(shinyApp(
         mapCountryData(malMap, nameColumnToPlot="OECD", catMethod = "categorical",
                        missingCountryCol = gray(.8), oceanCol = 'cyan', mapTitle = paste0("Boundries of ", input$cn_input), mapRegion = reg)
         
+        
+      })
+      
+      ###
+      
+      output$select.eco <- renderUI({
+        
+        selectInput('eco', "Select an economic variable", 
+                    intersect(colnames(myData()), 
+                              c("Terror.attacks", "Total.Arrivals", "GDP.per.capita", "Hours.worked")))
+        
+      })
+      
+      output$plot.eco <- renderPlot({
+        
+        data.to.plot <- myData()[myData()[, "Country"]==input$cn_input, ]
+        grid.frame(x = as.numeric(data.to.plot[, "Date"]), y = data.to.plot[, input$eco])
+        matplot(x = as.numeric(data.to.plot[, "Date"]), y = data.to.plot[, input$eco], 
+                lwd=2, lty=1, cex=1.25, pch=20, xlab="Time", add = T, type="o",
+                col=c('cornflowerblue'))
+        mtext(input$cn_input, col="blueviolet", line=2, cex=1.25, adj = 0)
+        mtext(input$eco, col="cornflowerblue", line=1, cex=1, adj = 0)
         
       })
       
