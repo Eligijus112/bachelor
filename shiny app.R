@@ -8,7 +8,7 @@ runApp(shinyApp(
   
   ui = fluidPage(
     
-    theme = shinytheme("united"),
+    theme = shinytheme("cerulean"),
     
     navbarPage("OECD tourism",
                
@@ -17,13 +17,14 @@ runApp(shinyApp(
                         
                     sidebarLayout(
                        sidebarPanel( 
-                          actionButton('download', "Initiate data download"),
+                         actionButton('download', "Initiate data download"),
                           uiOutput("select.cn"),
                           uiOutput('select.eco')
                          
                        ),
                        
                       mainPanel( 
+                        
                          fluidRow(
                           column(8,  plotOutput('country.map', height = 600)),
                           column(12, plotOutput("plot.eco"))
@@ -45,84 +46,98 @@ runApp(shinyApp(
     
     observeEvent(input$download, {
       
-      download.terror(years.to.survey, "data/") 
-      dt <- read.terror("data/terror/")
-      dt <- arrange(dt, Date)
-      na.index <- which(apply(dt, 1, function(x){ all(is.na(x)) }))
-      if(length(na.index)!=0) dt <- dt[-na.index, ]
-      write.csv(dt, file="output/terror raw data.csv", na="", row.names=F)
-      
-      ## Tourism data
-      
-      dt.tour <- download.tourism("data/")
-      
-      ## Economic data
-      
-      dt.eco <- download.economy("data/")
-      dt.eco <- make.economy.great.again(dt.eco)
-      
-      ## OECD data on hours worked
-      
-      dt.oecd <- get_dataset("ANHRS")
-      decode  <- get_decoder("data/")  
-      
-      # Decoding country names
-      
-      dt.oecd <- ddply(dt.oecd, ~COUNTRY + obsTime + EMPSTAT, function(xframe){
+      withProgress(message = "downloading and tidying up data", value=0 ,  detail = "this may take a while...", { 
         
-        xframe <<- xframe
-        real.name <-  decode[decode$CODE==xframe$COUNTRY[1], "Country"]
-        if(length(real.name)==0) real.name <- xframe$COUNTRY[1]
-        xframe$COUNTRY <- real.name
-        return(xframe)
+        
+        download.terror(years.to.survey, "data/") 
+        dt <- read.terror("data/terror/")
+        dt <- arrange(dt, Date)
+        na.index <- which(apply(dt, 1, function(x){ all(is.na(x)) }))
+        if(length(na.index)!=0) dt <- dt[-na.index, ]
+        write.csv(dt, file="output/terror raw data.csv", na="", row.names=F)
+        
+        incProgress(0.2, message = "Data from terrorist database has been downloaded")
+        ## Tourism data
+        
+        dt.tour <- download.tourism("data/")
+        
+        incProgress(0.2, message  = "Data regarding tourism has been downloaded")
+        
+        ## Economic data
+        
+        dt.eco <- download.economy("data/")
+        dt.eco <- make.economy.great.again(dt.eco)
+        
+        incProgress(0.2, message  = "Data regarding economy has been downloaded")
+        
+        ## OECD data on hours worked
+        
+        dt.oecd <- get_dataset("ANHRS")
+        decode  <- get_decoder("data/")  
+        
+        incProgress(0.2, message  = "OECD data has been downloaded")
+        
+        # Decoding country names
+        
+        dt.oecd <- ddply(dt.oecd, ~COUNTRY + obsTime + EMPSTAT, function(xframe){
+          
+          xframe <<- xframe
+          real.name <-  decode[decode$CODE==xframe$COUNTRY[1], "Country"]
+          if(length(real.name)==0) real.name <- xframe$COUNTRY[1]
+          xframe$COUNTRY <- real.name
+          return(xframe)
+          
+        })
+        
+        dt.oecd <- dt.oecd[dt.oecd$EMPSTAT=="TE", ]
+        dt.oecd[dt.oecd$COUNTRY=="KOR", "COUNTRY"] <- "South Korea"
+        
+        
+        master.data <- aggregate.terror.by.country(dt)
+        
+        dt.tour <- rename(dt.tour, c("Year" = "Date", "CountryName" = "Country"))
+        dt.eco <- rename(dt.eco, c("Year" = "Date", "CountryName" = "Country"))
+        
+        dt.tour$Country <- gsub("Korea, Rep.", "South Korea", dt.tour$Country)
+        dt.eco$Country <- gsub("Korea, Rep.", "South Korea", dt.eco$Country)
+        
+        master.data <- merge(master.data, dt.tour)
+        
+        for(prod in unique(dt.eco$Indicator)){
+          
+          tmp <- dt.eco[dt.eco$Indicator==prod, c("Country", "Date", "value")]
+          tmp <- rename(tmp, c("value" = prod))
+          master.data <- merge(master.data, tmp)
+          
+        }
+        
+        # Merging with OECD data
+        
+        dt.oecd <- plyr::rename(dt.oecd, c("COUNTRY" = "Country", "obsTime" = "Date", "obsValue" = "Working hours"))
+        dt.oecd <- dt.oecd[, c("Country", "Date", "Working hours")]
+        
+        master.data <- merge(master.data, dt.oecd)
+        
+        # Dropping incomplete rows
+        
+        master.data <- master.data[complete.cases(master.data), ]
+        
+        master.data <- arrange(master.data, Country)
+        
+        # Adding number of neighbours
+        
+        neighbours <- find.neighbours(unique(master.data$Country), path=path)
+        
+        master.data <- merge(master.data, neighbours, sort=F)
+        master.data$Numb.neighbour <- as.numeric(as.character(master.data$Numb.neighbour))
+        
+        
+        master.data <- plyr::rename(master.data, c('GDP per capita (current US$)' = "GDP.per.capita"))
+        master.data <- plyr::rename(master.data, c('Working hours' = "Hours.worked"))
+        
+        incProgress(0.2, message  = "Data has been baked")
         
       })
-      
-      dt.oecd <- dt.oecd[dt.oecd$EMPSTAT=="TE", ]
-      dt.oecd[dt.oecd$COUNTRY=="KOR", "COUNTRY"] <- "South Korea"
-      
-      
-      master.data <- aggregate.terror.by.country(dt)
-      
-      dt.tour <- rename(dt.tour, c("Year" = "Date", "CountryName" = "Country"))
-      dt.eco <- rename(dt.eco, c("Year" = "Date", "CountryName" = "Country"))
-      
-      dt.tour$Country <- gsub("Korea, Rep.", "South Korea", dt.tour$Country)
-      dt.eco$Country <- gsub("Korea, Rep.", "South Korea", dt.eco$Country)
-      
-      master.data <- merge(master.data, dt.tour)
-      
-      for(prod in unique(dt.eco$Indicator)){
-        
-        tmp <- dt.eco[dt.eco$Indicator==prod, c("Country", "Date", "value")]
-        tmp <- rename(tmp, c("value" = prod))
-        master.data <- merge(master.data, tmp)
-        
-      }
-      
-      # Merging with OECD data
-      
-      dt.oecd <- plyr::rename(dt.oecd, c("COUNTRY" = "Country", "obsTime" = "Date", "obsValue" = "Working hours"))
-      dt.oecd <- dt.oecd[, c("Country", "Date", "Working hours")]
-      
-      master.data <- merge(master.data, dt.oecd)
-      
-      # Dropping incomplete rows
-      
-      master.data <- master.data[complete.cases(master.data), ]
-      
-      master.data <- arrange(master.data, Country)
-      
-      # Adding number of neighbours
-      
-      neighbours <- find.neighbours(unique(master.data$Country), path=path)
-      
-      master.data <- merge(master.data, neighbours, sort=F)
-      master.data$Numb.neighbour <- as.numeric(as.character(master.data$Numb.neighbour))
-      
-      
-      master.data <- plyr::rename(master.data, c('GDP per capita (current US$)' = "GDP.per.capita"))
-      master.data <- plyr::rename(master.data, c('Working hours' = "Hours.worked"))
       
       myData <- reactive({ master.data })
       
