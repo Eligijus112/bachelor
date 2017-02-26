@@ -130,13 +130,13 @@ runApp(shinyApp(
         iso.2 <- countrycode_data[countrycode_data$country.name==input$cn_input, "iso2c"]
         
         cn.info <- total.info[total.info$ISO_A2==iso.2, ]
-        reg <- cn.info$GEO3major %>% as.character()
+        # reg <- cn.info$GEO3major %>% as.character()
         
         malMap <- joinCountryData2Map(OECD.cn, joinCode = "NAME",
                                       nameJoinColumn = "country", verbose = F, suggestForFailedCodes = F)
         
         mapCountryData(malMap, nameColumnToPlot="OECD", catMethod = "categorical",
-                       missingCountryCol = gray(.8), oceanCol = 'cyan', mapTitle = paste0("Boundries of ", input$cn_input), mapRegion = reg)
+                       missingCountryCol = gray(.8), oceanCol = 'cyan', mapTitle = paste0("Boundries of ", input$cn_input), mapRegion = input$cn_input)
         
         
       })
