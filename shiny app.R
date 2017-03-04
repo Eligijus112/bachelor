@@ -52,7 +52,7 @@ runApp(shinyApp(
                
                
                
-               tabPanel("Data visualization")
+               tabPanel("Models")
     )
     
     
@@ -63,7 +63,7 @@ runApp(shinyApp(
     
     observeEvent(input$download, {
       
-      withProgress(message = "downloading and tidying up data", value=0 ,  detail = "this may take a while...", { 
+      withProgress(message = "downloading and tidying up data", value=0, { 
         
         
         download.terror(years.to.survey, "data/") 
@@ -177,7 +177,7 @@ runApp(shinyApp(
                               OECD = rep.int("OECD countries",
                                              length(unique(input$cn_input))))
         
-        iso.2 <- countrycode_data[countrycode_data$country.name==input$cn_input, "iso2c"]
+        iso.2 <- countrycode_data[countrycode_data$country.name.en==input$cn_input, "iso2c"]
         
         cn.info <- total.info[total.info$ISO_A2==iso.2, ]
         reg <- cn.info$GEO3major[1] %>% as.character()
@@ -207,12 +207,16 @@ runApp(shinyApp(
       output$plot.eco <- renderPlot({
         
         data.to.plot <- myData()[myData()[, "Country"]==input$cn_input, ]
-        grid.frame(x = as.numeric(data.to.plot[, "Date"]), y = data.to.plot[, input$eco])
+        grid.frame(x = as.numeric(data.to.plot[, "Date"]), y = data.to.plot[, input$eco], xlab="Time")
+        
         matplot(x = as.numeric(data.to.plot[, "Date"]), y = data.to.plot[, input$eco], 
-                lwd=2, lty=1, cex=1.25, pch=20, xlab="Time", add = T, type="o",
-                col=c('cornflowerblue'))
-        mtext(input$cn_input, col="blueviolet", line=2, cex=1.25, adj = 0)
-        mtext(input$eco, col="cornflowerblue", line=1, cex=1, adj = 0)
+                lwd=2, lty=1, cex=2, pch=20, xlab="Time", add = T, type="l",
+                col=c('dodgerblue4'))
+        
+        mtext(input$cn_input, col="blueviolet", line=2, cex=1.5, adj = 0)
+        
+        eco.variable <- paste(strsplit(input$eco, "[.]")[[1]], collapse=" ")
+        mtext(eco.variable, col="firebrick3", line=1, cex=1.25, adj = 0)
         
       })
       
