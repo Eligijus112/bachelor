@@ -838,6 +838,11 @@ Inspecting the accuracy of the forecasts (figure 9 and table 4) we can clearly s
 
 \section{Conclusion}
 
+After testing various models a conclusion was met that the fixed effects panel data model best suits the data regarding the arrivals to the OECD countries. According to the model (the model is in table 2):
 
+$\bullet$ Every terrorist attack shrinks the total number of arrivals on average by 0.5 percent in a given year.
 
+$\bullet$ Increasing the total GDP per capita of a given country increases the tourist flows by 0.493 percent.
+
+$\bullet$ A decrease of a 1 percent of total average working hours of neighbouring countries would increase the tourism flow by 0.8 percent.
 
