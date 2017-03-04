@@ -14,9 +14,9 @@ library(plm)
 library(RCurl)
 library(dplyr)
 library(plyr)
-library(emibase)
+# library(emibase)
 library(plotrix)
-library(mgcv)
+# library(mgcv)
 library(reshape2)
 library(readxl)
 library(knitr)
@@ -26,8 +26,12 @@ library(countrycode)
 library(texreg)
 library(ggplot2)
 library(directlabels)
-library(splines)
+# library(splines)
 library(MASS)
+library(TTR)
+library(rsdmx)
+library(httr)
+library(splines)
 source('functions.R')
 ```
 
@@ -63,7 +67,7 @@ createdir("plots")
 # createdir("input")
 createdir("data")
 createdir("output")
-devtools::install_url("http://cran.r-project.org/src/contrib/rprojroot_1.2.tar.gz") ## MAY RESOLVE TROUBLESHOOTS
+# devtools::install_url("http://cran.r-project.org/src/contrib/rprojroot_1.2.tar.gz") ## MAY RESOLVE TROUBLESHOOTS
 knitr::opts_chunk$set(fig.pos = 'h')
 ```
 
@@ -211,11 +215,10 @@ dt.a <- ddply(dt.a, ~Date, function(xframe){
 dt.a$Total.Arrivals <- dt.a$Total.Arrivals/1000
 dt.a$Date <- as.numeric(dt.a$Date)
 
-p <- ggplot(dt.a, aes(x=Date, y=Total.Arrivals, group=Country, colour=Country, label=Country)) + geom_line(size=1.2) + ylab("Total Arrivals, thousands") + theme_bw() + scale_x_continuous(expand = c(0, 4)) + geom_dl(aes(label = Country), method = list(dl.combine("first.polygons"), cex = 1)) + geom_dl(aes(label = Country), method = list(dl.combine("last.polygons"), cex = 1)) + stat_smooth(se = FALSE, method = "lm", formula = y ~ ns(x,2),aes( colour="Square trend"), linetype="dashed") +
-scale_colour_manual(values = c("coral3", "darkblue"),
+p <- ggplot(dt.a, aes(x=Date, y=Total.Arrivals, group=Country, colour=Country, label=Country)) + geom_line(size=1.2) + ylab("Total Arrivals, thousands") + theme_bw() + scale_x_continuous(expand = c(0, 4)) + geom_dl(aes(label = Country), method = list(dl.combine("first.polygons"), cex = 1)) + geom_dl(aes(label = Country), method = list(dl.combine("last.polygons"), cex = 1)) + stat_smooth(se = FALSE, method = "lm", formula = y ~ ns(x,2),aes( colour="Square trend"), linetype="dashed")  + scale_colour_manual(values = c("coral3", "darkblue"),
                        guide = guide_legend(override.aes = list(
                          linetype = c("solid", "dashed"),
-                         shape = c(16, 16)), title="Legend")) 
+                         shape = c(16, 16)), title="Legend"))
 
 plot(p)
 
@@ -358,11 +361,13 @@ dmat <- dmat[-1, -1]
 dmat <- as.data.frame(dmat)
   
 names.on.file <- colnames(dmat)
-decode <- merge(data.frame(cown=as.numeric(names.on.file)), countrycode_data[, c("country.name", "cown")], sort=F)
+decode <- merge(data.frame(cown=as.numeric(names.on.file)), countrycode_data[, c("country.name.en", "cown")], sort=F)
   
-decode$country.name <- gsub("Korea, Republic of", "South Korea", decode$country.name)
+decode$country.name <- gsub("Republic of Korea", "South Korea", decode$country.name)
 decode$country.name <- gsub("Slovakia", "Slovak Republic", decode$country.name)
-  
+decode$country.name <- gsub("United Kingdom of Great Britain and Northern Ireland", "United Kingdom", decode$country.name)  
+decode$country.name <- gsub("United States of America", "United States", decode$country.name)  
+
 colnames(dmat) <- decode$country.name
 rownames(dmat) <- decode$country.name
 
@@ -681,6 +686,10 @@ kable(accuracy.table, format = "latex", row.names = T, caption = "Table for accu
 \end{center}
 
 As we can see from figure 7 and the statistics for accuracy table the fixed effects models' predictions are much closer to the original values. 
+
+\newpage
+
+\subsection{Random effects model}
 
 
 

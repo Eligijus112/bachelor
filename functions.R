@@ -648,10 +648,12 @@ find.neighbours <- function(cn, path){
   dmat <- as.data.frame(dmat)
   
   names.on.file <- colnames(dmat)
-  decode <- merge(data.frame(cown=as.numeric(names.on.file)), countrycode_data[, c("country.name", "cown")], sort=F)
+  decode <- merge(data.frame(cown=as.numeric(names.on.file)), countrycode_data[, c("country.name.en", "cown")], sort=F)
   
-  decode$country.name <- gsub("Korea, Republic of", "South Korea", decode$country.name)
+  decode$country.name <- gsub("Republic of Korea", "South Korea", decode$country.name)
   decode$country.name <- gsub("Slovakia", "Slovak Republic", decode$country.name)
+  decode$country.name <- gsub("United Kingdom of Great Britain and Northern Ireland", "United Kingdom", decode$country.name)  
+  decode$country.name <- gsub("United States of America", "United States", decode$country.name)  
   
   colnames(dmat) <- decode$country.name
   rownames(dmat) <- decode$country.name
