@@ -30,20 +30,22 @@ runApp(shinyApp(
     navbarPage("OECD tourism",
                
                
-               tabPanel("OECD countries info", 
+               tabPanel("Data download", 
                         
                     sidebarLayout(
                        sidebarPanel( 
-                         actionButton('download', "Initiate data download"),
-                          uiOutput("select.cn"),
-                          uiOutput('select.eco')
+                         actionButton('download', "Initiate data download")
+                         
+                         
                          
                        ),
                        
                       mainPanel( 
                         
                          fluidRow(
+                          uiOutput("select.cn"),
                           column(8,  plotOutput('country.map', height = 600)),
+                          uiOutput('select.eco'),
                           column(12, plotOutput("plot.eco"))
                          )
                       )
@@ -52,7 +54,26 @@ runApp(shinyApp(
                
                
                
-               tabPanel("Models")
+               tabPanel("Models",
+                        
+                        sidebarLayout(
+                          
+                          sidebarPanel(
+                            
+                            uiOutput("select.cn2"),
+                            uiOutput("model")
+                            
+                          ),
+                          
+                          mainPanel(
+                            column(8,  plotOutput('plot.model', width=800))
+                            
+                          )
+                          
+                        )
+                        
+                        
+                        )
     )
     
     
@@ -60,6 +81,8 @@ runApp(shinyApp(
   ),
   
   server = function(input, output, session) {
+    
+    # 1 st tab ----------------------------------------------------------------
     
     observeEvent(input$download, {
       
@@ -161,9 +184,6 @@ runApp(shinyApp(
       output$select.cn <- renderUI({
         selectInput("cn_input", "Select a OECD country",
                     choices = unique(myData()[, "Country"]))
-        
-        
-        
       })
       
       ###
@@ -221,5 +241,114 @@ runApp(shinyApp(
       })
       
     })
+    
+    # 2 tab -------------------------------------------------------------------
+    
+    myData2 <- reactive({ master.data })
+    
+    output$select.cn2 <- renderUI({
+      selectInput("cn_input2", "Select a OECD country",
+                  choices = unique(myData2()[, "Country"]))
+    })
+    
+    output$model <- renderUI({
+      selectInput("model2", "Select a model",
+                  choices = c("OLS", "Fixed effects", "Random effects"))
+    })
+    
+    create.model <- reactive({
+      
+      modelz <- list()
+      
+      ddt <- myData2()
+      ddt$Total.Arrivals <- log(ddt$Total.Arrivals)
+      ddt$GDP.per.capita <- log(ddt$GDP.per.capita)
+      ddt$Hours.worked   <- log(ddt$Hours.worked)
+      
+      pdata <- plm.data(ddt, index = c("Country", "Date")) 
+        
+      modelz[['OLS']] <-  lm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked, data=ddt)
+        
+      modelz[['Fixed effects']] <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked, data=pdata, model="within")
+        
+      modelz[['Random effects']]  <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked, data=pdata, model="random")
+      
+      modelz
+      
+    })
+    
+    
+    fitted.values <- reactive({
+      
+      ddt <- myData2()
+      ddt$Total.Arrivals <- log(ddt$Total.Arrivals)
+      ddt$GDP.per.capita <- log(ddt$GDP.per.capita)
+      ddt$Hours.worked   <- log(ddt$Hours.worked)
+      
+      X <- ddt[ddt$Country==input$cn_input2, c("Date", 'Terror.attacks', "GDP.per.capita", "Hours.worked")]
+      
+      if(input$model2=="OLS"){
+        
+        X <- ddply(X, ~Date, function(xframe){
+          
+          coefs <- coefficients(create.model()[["OLS"]])
+          fc <- coefs[2] * xframe[2] + coefs[3] * xframe[3] + coefs[4] * xframe[4] + coefs[1]
+          xframe$fit <- exp(fc) %>% as.numeric()
+          return(xframe)
+          
+        })
+        
+      }
+      
+      if(input$model2=="Fixed effects"){
+        
+        X <- ddply(X, ~Date, function(xframe){
+          
+          coefs <- coefficients(create.model()[["Fixed effects"]])
+          fc <- coefs[1] * xframe[2] + coefs[2] * xframe[3] + coefs[3] * xframe[4]
+          fc <- fc + fixef(create.model()[["Fixed effects"]])[input$cn_input2] 
+          xframe$fit <- exp(fc) %>% as.numeric()
+          return(xframe)
+        })
+      }
+        
+        if(input$model2=="Random effects"){
+          
+          X <- ddply(X, ~Date, function(xframe){
+            
+            coefs <- coefficients(create.model()[["Random effects"]])
+            fc    <- coefs[1] + coefs[2] * xframe[2] + coefs[3]* xframe[3] + coefs[4] * xframe[4] 
+            xframe$fit <- exp(fc) %>% as.numeric()
+            return(xframe)
+          })
+        }
+      
+        X$fit
+    })
+    
+    output$plot.model <- renderPlot({
+      
+      data.to.plot <- myData2()[myData2()[, "Country"]==input$cn_input2, 'Total.Arrivals']
+      data.to.plot <- cbind(data.to.plot, fitted.values())
+      grid.frame(x = as.numeric(myData2()[myData2()[, "Country"]==input$cn_input2, 'Date']),
+                 y = data.to.plot, xlab="Time")
+      
+      matplot(x = as.numeric(myData2()[myData2()[, "Country"]==input$cn_input2, 'Date']),
+              y = data.to.plot, 
+              lwd=2, lty=1, cex=2, pch=20, xlab="Time", add = T, type="l",
+              col=c('dodgerblue4', "firebrick1"))
+      
+      mtext(input$cn_input2, col="blueviolet", line=2, cex=1.5, adj = 0)
+      
+      mtext("Total Arrivals", col="firebrick3", line=1, cex=1.25, adj = 0)
+      legendary2(c("Original", "Fitted"), col=c('dodgerblue4', "firebrick1"))
+      
+    }) 
   }
 ))
+
+
+
+
+
+
