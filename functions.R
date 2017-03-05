@@ -440,20 +440,23 @@ download.tourism <- function(path, write=T){
 
 ## Function to download economic data
 
-download.economy <- function(path, check=T) {
+download.economy <- function(path) {
   
   createdir(paste0(path, "economy"))
-  
-  if(check){
-    
-    if(length(grep("raw economic data.csv", list.files(paste0(path, "economy"))))==1) cat("The data seems to be downloaded")
-    
-    return(read.csv(paste0(path,"economy/raw economic data.csv"), stringsAsFactor=F))
+
+  if(length(grep("raw economic data.csv", list.files(paste0(path, "economy"))))==1){
+      
+      cat("The data seems to be downloaded")
+      return(read.csv(paste0(path,"economy/raw economic data.csv"), stringsAsFactor=F))
+      
   } else{
     
     decode <- read.csv("input/decoder.csv", stringsAsFactors = F)
+    
     if(dim(decode)[1]<1){
+      
       print("Decoder is missing. Please download tourism data first")
+      
     } else {
       
       big.data <- data.frame()
