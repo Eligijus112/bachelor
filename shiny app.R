@@ -19,6 +19,7 @@ library(ggplot2)
 library(directlabels)
 library(splines)
 library(MASS)
+library(xtable)
 source('functions.R')
 
 runApp(shinyApp(
@@ -30,41 +31,18 @@ runApp(shinyApp(
     theme = shinytheme("cerulean"),
     
     navbarPage("OECD tourism",
-               
-               
-               tabPanel("Data download", 
-                        
-                    sidebarLayout(
-                       sidebarPanel( 
-                         actionButton('download', "Initiate data download")
-                         
-                         
-                         
-                       ),
-                       
-                      mainPanel( 
-                        
-                         fluidRow(
-                          uiOutput("select.cn"),
-                          column(8,  plotOutput('country.map', height = 600)),
-                          uiOutput('select.eco'),
-                          column(12, plotOutput("plot.eco"))
-                         )
-                      )
-                    )
-               ),
-               
-               
-               
+
                tabPanel("Models",
                         
                         sidebarLayout(
                           
                           sidebarPanel(
-                            
+                            actionButton('download', "Initiate data download"),
                             uiOutput("select.cn2"),
                             uiOutput("model"),
-                            uiOutput("range")
+                            uiOutput("range"),
+                            plotOutput('country.map', height = 600)
+                            # plotOutput('country.map')
                             # tableOutput("render.test")
                             # plotOutput("out.of.sample")
                             
@@ -73,7 +51,10 @@ runApp(shinyApp(
                           mainPanel(
                             column(8,  plotOutput('plot.model', width=800)),
                             # column(8,  textOutput('slider.text')),
-                            column(8,  plotOutput('out.of.sample', width=800))
+                            column(8, htmlOutput("formula")),
+                            column(8,  plotOutput('out.of.sample', width=800)),
+                            column(8, htmlOutput("formula2"))
+                            
                             # column(8,  tableOutput('render.test'))
                           )
                           
@@ -86,7 +67,7 @@ runApp(shinyApp(
   
    server = function(input, output, session) {
     
-    # 1 tab ----------------------------------------------------------------
+
     
     observeEvent(input$download, {
       
@@ -181,7 +162,7 @@ runApp(shinyApp(
         
         incProgress(0.2, message  = "Data has been baked")
         
-      })
+      
       
       myData <- reactive({ master.data })
       
@@ -190,59 +171,6 @@ runApp(shinyApp(
                     choices = unique(myData()[, "Country"]))
       })
       
-      ###
-      
-      output$country.map <- renderPlot({
-        
-        all.regions <- c('eurasia', 'africa',  'latin america', 'north america' , 'uk' , 'oceania', 'asia')
-        total.info <- getMap()
-        
-        OECD.cn <- data.frame(country = input$cn_input,
-                              OECD = rep.int("OECD countries",
-                                             length(unique(input$cn_input))))
-        
-        iso.2 <- countrycode_data[countrycode_data$country.name.en==input$cn_input, "iso2c"]
-        
-        cn.info <- total.info[total.info$ISO_A2==iso.2, ]
-        reg <- cn.info$GEO3major[1] %>% as.character()
-        
-        if(reg=="Latin America and the Caribbean") reg <- "latin america"
-        if(reg=="Asia and the Pacific") reg <- "oceania"
-        
-        malMap <- joinCountryData2Map(OECD.cn, joinCode = "NAME",
-                                      nameJoinColumn = "country", verbose = F, suggestForFailedCodes = F)
-        
-        mapCountryData(malMap, nameColumnToPlot="OECD", catMethod = "categorical",
-                       missingCountryCol = gray(.8), oceanCol = 'cyan', mapTitle = paste0("Boundries of ", input$cn_input), mapRegion = reg)
-        
-        
-      })
-      
-      ###
-      
-      output$select.eco <- renderUI({
-        
-        selectInput('eco', "Select an economic variable", 
-                    intersect(colnames(myData()), 
-                              c("Terror.attacks", "Total.Arrivals", "GDP.per.capita", "Hours.worked")))
-        
-      })
-      
-      output$plot.eco <- renderPlot({
-        
-        data.to.plot <- myData()[myData()[, "Country"]==input$cn_input, ]
-        grid.frame(x = as.numeric(data.to.plot[, "Date"]), y = data.to.plot[, input$eco], xlab="Time")
-        
-        matplot(x = as.numeric(data.to.plot[, "Date"]), y = data.to.plot[, input$eco], 
-                lwd=2, lty=1, cex=2, pch=20, xlab="Time", add = T, type="o",
-                col=c('dodgerblue4'))
-        
-        mtext(input$cn_input, col="blueviolet", line=2, cex=1.5, adj = 0)
-        
-        eco.variable <- paste(strsplit(input$eco, "[.]")[[1]], collapse=" ")
-        mtext(eco.variable, col="firebrick3", line=1, cex=1.25, adj = 0)
-        
-      })
       
     })
     
@@ -267,6 +195,32 @@ runApp(shinyApp(
                     value=c(1995, 2011))
     })
     
+    output$country.map <- renderPlot({
+      
+      all.regions <- c('eurasia', 'africa',  'latin america', 'north america' , 'uk' , 'oceania', 'asia')
+      total.info <- getMap()
+      
+      OECD.cn <- data.frame(country = input$cn_input2,
+                            OECD = rep.int("OECD countries",
+                                           length(unique(input$cn_input2))))
+      
+      iso.2 <- countrycode_data[countrycode_data$country.name.en==input$cn_input2, "iso2c"]
+      
+      cn.info <- total.info[total.info$ISO_A2==iso.2, ]
+      reg <- cn.info$GEO3major[1] %>% as.character()
+      
+      if(reg=="Latin America and the Caribbean") reg <- "latin america"
+      if(reg=="Asia and the Pacific") reg <- "oceania"
+      
+      malMap <- joinCountryData2Map(OECD.cn, joinCode = "NAME",
+                                    nameJoinColumn = "country", verbose = F, suggestForFailedCodes = F)
+      
+      mapCountryData(malMap, nameColumnToPlot="OECD", catMethod = "categorical",
+                     missingCountryCol = gray(.8), oceanCol = 'cyan', mapTitle = paste0("Boundries of ", input$cn_input2), mapRegion = reg)
+      
+      
+    })
+    
     create.model <- reactive({
       
       modelz <- list()
@@ -288,6 +242,13 @@ runApp(shinyApp(
       
     })
     
+    output$formula <- renderPrint({
+      
+      tab <- xtable(summary(create.model()[[input$model2]])$coef, digits=c(3, 3, 3, 3, 3))
+      print(tab, type="html", only.contents = F, comment = F, width = 600, 
+            html.table.attributes = "border=0",  size = "\\setlength{\\tabcolsep}{32pt}")
+      
+    })
     
     fitted.values <- reactive({
       
@@ -402,7 +363,14 @@ runApp(shinyApp(
       modelz
 
     })
-
+    
+    output$formula2 <- renderPrint({
+      
+      tab <- xtable(summary(create.model.test()[[input$model2]])$coef, digits=c(3, 3, 3, 3, 3))
+      print(tab, type="html", only.contents = F, comment = F, width = 600, 
+            html.table.attributes = "border=0",  size = "\\setlength{\\tabcolsep}{32pt}")
+      
+    })
     
     fitted.values.test <- reactive({
       
@@ -470,7 +438,7 @@ runApp(shinyApp(
       legendary2(c("Original", "Forecasted"), col=c('dodgerblue4', "firebrick1"))
 
     })
-
+    })
   }
 ))
 
