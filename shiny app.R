@@ -23,6 +23,8 @@ source('functions.R')
 
 runApp(shinyApp(
   
+# ui ---------------------------------------------------------------------- 
+  
   ui = fluidPage(
     
     theme = shinytheme("cerulean"),
@@ -61,28 +63,30 @@ runApp(shinyApp(
                           sidebarPanel(
                             
                             uiOutput("select.cn2"),
-                            uiOutput("model")
+                            uiOutput("model"),
+                            uiOutput("range")
+                            # tableOutput("render.test")
+                            # plotOutput("out.of.sample")
                             
                           ),
                           
                           mainPanel(
-                            column(8,  plotOutput('plot.model', width=800))
-                            
+                            column(8,  plotOutput('plot.model', width=800)),
+                            # column(8,  textOutput('slider.text')),
+                            column(8,  plotOutput('out.of.sample', width=800))
+                            # column(8,  tableOutput('render.test'))
                           )
                           
                         )
                         
-                        
-                        )
+                      )
     )
-    
-    
-    
   ),
+# server ----------------------------------------------------------------------   
   
-  server = function(input, output, session) {
+   server = function(input, output, session) {
     
-    # 1 st tab ----------------------------------------------------------------
+    # 1 tab ----------------------------------------------------------------
     
     observeEvent(input$download, {
       
@@ -230,7 +234,7 @@ runApp(shinyApp(
         grid.frame(x = as.numeric(data.to.plot[, "Date"]), y = data.to.plot[, input$eco], xlab="Time")
         
         matplot(x = as.numeric(data.to.plot[, "Date"]), y = data.to.plot[, input$eco], 
-                lwd=2, lty=1, cex=2, pch=20, xlab="Time", add = T, type="l",
+                lwd=2, lty=1, cex=2, pch=20, xlab="Time", add = T, type="o",
                 col=c('dodgerblue4'))
         
         mtext(input$cn_input, col="blueviolet", line=2, cex=1.5, adj = 0)
@@ -254,6 +258,13 @@ runApp(shinyApp(
     output$model <- renderUI({
       selectInput("model2", "Select a model",
                   choices = c("OLS", "Fixed effects", "Random effects"))
+    })
+    
+    output$range <- renderUI({
+      sliderInput("range", "Select range of years for test data",
+                    min=min(as.numeric(unique(myData2()[, "Date"]))), 
+                    max=max(as.numeric(unique(myData2()[, "Date"]))) - 1, 
+                    value=c(1995, 2011))
     })
     
     create.model <- reactive({
@@ -335,7 +346,7 @@ runApp(shinyApp(
       
       matplot(x = as.numeric(myData2()[myData2()[, "Country"]==input$cn_input2, 'Date']),
               y = data.to.plot, 
-              lwd=2, lty=1, cex=2, pch=20, xlab="Time", add = T, type="l",
+              lwd=2, lty=1, cex=2, pch=20, xlab="Time", add = T, type="o",
               col=c('dodgerblue4', "firebrick1"))
       
       mtext(input$cn_input2, col="blueviolet", line=2, cex=1.5, adj = 0)
@@ -343,9 +354,128 @@ runApp(shinyApp(
       mtext("Total Arrivals", col="firebrick3", line=1, cex=1.25, adj = 0)
       legendary2(c("Original", "Fitted"), col=c('dodgerblue4', "firebrick1"))
       
-    }) 
+    })
+    
+    test.set <- reactive({
+      
+      myData2()[myData2()[, "Date"] %in% paste(input$range[1] : input$range[2]),]
+      
+    })
+    
+    training.set <- reactive({
+      
+      myData2()[myData2()[, "Date"] %in% paste((max(input$range) + 1 ):max(as.numeric(unique(myData2()[, "Date"])))),]
+      
+    })
+    
+    output$slider.text <- renderText({ input$range })
+    
+    output$render.test <- renderTable({
+
+      test.set()
+
+    })
+
+    output$render.training <- renderTable({
+
+      training.set()
+
+    })
+
+    create.model.test <- reactive({
+
+      modelz <- list()
+
+      ddt <- test.set()
+      ddt$Total.Arrivals <- log(ddt$Total.Arrivals)
+      ddt$GDP.per.capita <- log(ddt$GDP.per.capita)
+      ddt$Hours.worked   <- log(ddt$Hours.worked)
+
+      pdata <- plm.data(ddt, index = c("Country", "Date"))
+
+      modelz[['OLS']] <-  lm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked, data=ddt)
+
+      modelz[['Fixed effects']] <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked, data=pdata, model="within")
+
+      modelz[['Random effects']]  <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked, data=pdata, model="random")
+
+      modelz
+
+    })
+
+    
+    fitted.values.test <- reactive({
+      
+      ddt <- training.set()
+      ddt$Total.Arrivals <- log(ddt$Total.Arrivals)
+      ddt$GDP.per.capita <- log(ddt$GDP.per.capita)
+      ddt$Hours.worked   <- log(ddt$Hours.worked)
+      
+      X <- ddt[ddt$Country==input$cn_input2, c("Date", 'Terror.attacks', "GDP.per.capita", "Hours.worked")]
+      
+      if(input$model2=="OLS"){
+        
+        X <- ddply(X, ~Date, function(xframe){
+          
+          coefs <- coefficients(create.model.test()[["OLS"]])
+          fc <- coefs[2] * xframe[2] + coefs[3] * xframe[3] + coefs[4] * xframe[4] + coefs[1]
+          xframe$fit <- exp(fc) %>% as.numeric()
+          return(xframe)
+          
+        })
+        
+      }
+      
+      if(input$model2=="Fixed effects"){
+        
+        X <- ddply(X, ~Date, function(xframe){
+          
+          coefs <- coefficients(create.model.test()[["Fixed effects"]])
+          fc <- coefs[1] * xframe[2] + coefs[2] * xframe[3] + coefs[3] * xframe[4]
+          fc <- fc + fixef(create.model.test()[["Fixed effects"]])[input$cn_input2] 
+          xframe$fit <- exp(fc) %>% as.numeric()
+          return(xframe)
+        })
+      }
+      
+      if(input$model2=="Random effects"){
+        
+        X <- ddply(X, ~Date, function(xframe){
+          
+          coefs <- coefficients(create.model.test()[["Random effects"]])
+          fc    <- coefs[1] + coefs[2] * xframe[2] + coefs[3]* xframe[3] + coefs[4] * xframe[4] 
+          xframe$fit <- exp(fc) %>% as.numeric()
+          return(xframe)
+        })
+      }
+      
+      X$fit
+    })
+    
+    output$out.of.sample <- renderPlot({
+
+      data.to.plot <- training.set()[training.set()[, "Country"]==input$cn_input2, 'Total.Arrivals']
+      data.to.plot <- cbind(data.to.plot, fitted.values.test())
+      grid.frame(x = as.numeric(training.set()[training.set()[, "Country"]==input$cn_input2, 'Date']),
+                 y = data.to.plot, xlab="Time")
+
+      matplot(x = as.numeric( training.set()[ training.set()[, "Country"]==input$cn_input2, 'Date']),
+              y = data.to.plot,
+              lwd=2, lty=1, cex=2, pch=20, xlab="Time", add = T, type="o",
+              col=c('dodgerblue4', "firebrick1"))
+      #
+      mtext(input$cn_input2, col="blueviolet", line=2, cex=1.5, adj = 0)
+
+      mtext("Total Arrivals", col="firebrick3", line=1, cex=1.25, adj = 0)
+      legendary2(c("Original", "Forecasted"), col=c('dodgerblue4', "firebrick1"))
+
+    })
+
   }
 ))
+
+
+
 
 
 

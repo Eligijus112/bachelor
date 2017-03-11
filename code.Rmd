@@ -59,7 +59,7 @@ source('functions.R')
 \centerline {\bf \large FACULTY OF MATHEMATICS AND INFORMATICS}
 \centerline {\bf DEPARTMENT OF MATHEMATICAL ANALYSIS}
 \vskip 120pt
-\large Scientific supervisor (PhD, Vaidotas Zemlys - Balevičius) \underline{\hskip 95pt}
+\large Scientific supervisor Vaidotas Zemlys - Balevičius, PhD \underline{\hskip 95pt}
 \vskip 150pt
 \end{titlepage}
 
