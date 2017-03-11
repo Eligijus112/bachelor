@@ -1,4 +1,7 @@
 ---
+header-includes:
+   - \usepackage[english,lithuanian]{babel}
+   - \usepackage[L7x]{fontenc}
 output:
  pdf_document: 
     fig_caption: yes
@@ -55,10 +58,46 @@ source('functions.R')
 
 \newpage
 
-\tableofcontents
+\begin{titlepage}
+\centerline {\bf \large FACULTY OF MATHEMATICS AND INFORMATICS}
+\centerline {\bf DEPARTMENT OF MATHEMATICAL ANALYSIS}
+\vskip 120pt
+\large Scientific supervisor (PhD, Vaidotas, Zemlys - Balevičius) \underline{\hskip 95pt}
+\vskip 150pt
+\end{titlepage}
 
 \newpage
 
+\begin{center}{\large\textbf{Turizmo modelis OECD šalyse}}\end{center}
+\begin{small}
+\vspace{2\baselineskip}
+\begin{center}\textbf{Santrauka}\end{center}
+
+Šio darbo tikslas yra sudaryti turizmo modelį OECD šalims. Naudojantis pasaulinio banko (World Bank), OECD ir Merilando Universiteto duomenų baze (the Department of Homeland Security Center of Excellence led by the Maryland University) duomenimis nustatėme, kad turistų skaičius tiesiškai priklauso nuo teroristinių įvykių skaičiaus, kaimyninių valstybių metinių darbo valandų skaičiaus ir nuo BVP (bendrasis visdaus produktas) vienam asmeniui. Tiesinės priklausomybės įrodymui naudojome panelinį modelį.
+
+\vspace{\baselineskip}
+\noindent\textbf{Raktiniai žodžiai :}
+ BVP, OECD, pasaulinis bankas, panelinis modelis, darbo valandos, terorizmas, turizmas
+\end{small}
+\vspace{\baselineskip}
+\thispagestyle{empty}
+\begin{center}{\large\textbf{Tourism model in OECD countries}}\end{center}
+\begin{small}
+\vspace{2\baselineskip}
+\begin{center}\textbf{Abstract}\end{center}
+The aim of this paper is to construct a model to help explain the number of tourist arrivals in OECD countries. By using data from the World Bank, OECD and the Department of Homeland Security Center of Excellence led by the Maryland University's database we have found that the number of tourist arrivals to a certain OECD country is linearly dependant from GDP per capita, terrorist acts and the number of annual hours worked in neighbouring countries. To proove the linear dependance we used a panel model.
+
+\vspace{\baselineskip}
+\noindent\textbf{Key words :}
+GDP per capita, OECD, World Bank, panel model, hours worked, terrorizm, tourism 
+\end{small}
+\vspace{\baselineskip}
+
+\newpage
+
+\tableofcontents
+
+\newpage
 ```{r constants, include=FALSE}
 years.to.survey <- 1970:2015
 path <- "data/"
@@ -311,7 +350,7 @@ dt.a <- apply(dt.a, c(1,2), function(x) {as.numeric(x)})
 names(dt.a) <- nn
 dt.a <- sort(dt.a)
 par(mai=c(1,2,1,1))
-barplot(dt.a , col='deepskyblue3',  horiz=T , las=1, cex.names = 0.7, main="Total number of attacks")
+barplot(dt.a , col='deepskyblue3',  horiz=T , las=1, cex.names = 0.7, main="Total number of attacks, 1970 - 2014")
 
 ```
 
