@@ -1,15 +1,11 @@
 ---
 header-includes:
-   - \usepackage[english,lithuanian]{babel}
-   - \usepackage[L7x]{fontenc}
+  - \usepackage[L7x]{fontenc}
 output:
  pdf_document: 
     fig_caption: yes
     keep_tex: yes
     number_sections: no
-    # latex_engine: xelatex
-   # header_includes: \usepackage{float}
-
 ---
 
 ```{r setup, include=FALSE}
@@ -35,6 +31,7 @@ library(TTR)
 library(rsdmx)
 library(httr)
 library(splines)
+library(xtable)
 source('functions.R')
 ```
 
@@ -62,7 +59,7 @@ source('functions.R')
 \centerline {\bf \large FACULTY OF MATHEMATICS AND INFORMATICS}
 \centerline {\bf DEPARTMENT OF MATHEMATICAL ANALYSIS}
 \vskip 120pt
-\large Scientific supervisor (PhD, Vaidotas, Zemlys - Balevičius) \underline{\hskip 95pt}
+\large Scientific supervisor (PhD, Vaidotas Zemlys - Balevičius) \underline{\hskip 95pt}
 \vskip 150pt
 \end{titlepage}
 
@@ -549,11 +546,13 @@ kable(tail(pdata), format = "latex", row.names = F)
 ```
 
 
-```{r pooling panel model, include=FALSE, echo=F}
+```{r pooling panel model, include=FALSE, echo=F, warning=F}
 
 model.ols <- lm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked + Numb.neighbour , data=pdata)
 # summary(model.ols)
 ```
+
+\newpage
 
 \subsection{Pooling estimator}
 
@@ -570,8 +569,14 @@ And the estimator is derived solving the equation:
 \]
 
 
-```{r, results='asis', echo=F, warning=F, fig.pos="h"}
-  texreg(model.ols, caption = "OLS model", custom.coef.names = c("Intercept", "log attacks", "log GDP", "log Hours", "neighbours"))
+```{r, results='asis', echo=F, warning=F}
+   # texreg(model.ols, caption = "OLS model", custom.coef.names = c("Intercept", "attacks", "log GDP", "log Hours", "neighbours"), center = T,
+   #        custom.model.names = "OLS model")
+```
+
+```{r xtable, results="asis", echo=F, warning=F}
+tab <- xtable(summary(model.ols)$coef, digits=c(3, 3, 3, 3, 3), caption = "OLS model")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
 ```
 
 According to this model, there is a positive influence to tourism caused by terrorist attacks, which is not logical. Given that this model does not take into consideration the panel structure of the data, we will not be using straighforward OLS in our analysis. 
@@ -589,8 +594,13 @@ model.fixed <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + 
 # summary(model.fixed)
 ```
 
-```{r, results='asis', echo=F, warning=F, fig.pos="h"}
-  texreg(model.fixed, caption = "Fixed effects model", custom.coef.names = c("log attacks", "log GDP", "log Hours"), digits = 3)
+```{r, results='asis', echo=F, warning=F}
+  # texreg(model.fixed, caption = "Fixed effects model", custom.coef.names = c("attacks", "log GDP", "log Hours"), digits = 3, 
+  #         custom.model.names = "Fixed effects model")
+
+tab <- xtable(summary(model.fixed)$coef, digits=c(3, 3, 3, 3, 3), caption = "Fixed effects model")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
+
 ```
 
 As we can see from table 2 now the coefficients are logical - one terrorist attack can lead to about 0.5 percent decline in tourist arrivals. A one percent increase in GDP per capita can lead up to 0.5 increase in tourist arrivals and decreasing 1 percent of hours worked within neighboring countries leads to 0.43 percent more tourist arrivals. Table 2 does not include the intercept term and the the factor variable regarding its "goodness" of geographical place. 
@@ -747,8 +757,11 @@ There are two main types of panel models: the fixed effects model and the random
 model.random <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked, data=pdata, model="random")
 # summary(model.random)
 ```
-```{r, results='asis', echo=F, warning=F, fig.pos="h"}
-  texreg(model.random, caption = "Random effects model", custom.coef.names = c("intercept", "log attacks", "log GDP", "log Hours"), digits = 3)
+```{r, results='asis', echo=F, warning=F}
+  # texreg(model.random, caption = "Random effects model", custom.coef.names = c("intercept", "attacks", "log GDP", "log Hours"), digits = 3)
+
+tab <- xtable(summary(model.random)$coef, digits=c(3, 3, 3, 3, 3), caption = "Random effects model")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
 ```
 
 The categorical variable \textit{numb.neighbour} has been dropped due to insignificance. Comparing tables 2 and 4 we can see that the signs near the coefficients are the same and the actual values of the estimators are almost even. The random effects model has a little higher R statistic. The main difference here is that there is the intercept term and we lose some "uniqueness" to the countries which was present with the fixed effects model. One measure to determine which model is better for the given data is the Hausman test. 
@@ -758,6 +771,8 @@ The categorical variable \textit{numb.neighbour} has been dropped due to insigni
 ```
 
 As we can see from the test result we cannot reject the null hypothesis therefore we conclude that the random effects coefficients are more efficient and are consistent. Therefore the test implies that we sould use the random effects model.
+
+\newpage
 
 \subsection{Fixed effects versus random effects}
 
@@ -872,6 +887,73 @@ grid.frame(x=as.numeric(tmp$Date), y=points)
 ```
 
 Inspecting the accuracy of the forecasts (figure 9 and table 4) we can clearly see that the fixed effects model has an advantage. This is because the intercept for each of the countries is different in the fixed effects model thus giving us a more precise model for each individual country. Having this in mind we may conclude that the fixed effect model is $\textit{better}$ in describing the total number of arrivals for OECD countries.
+
+\newpage
+
+\subsection{Cross-validation}
+
+In this section we will split our data into \textit{test} and \textit{training} parts and rerun the same fixed effects model. The goal of this analysis is to asses how the results of a statistical analysis will generalize to an independent data set. The test data will be up to year 2011 and the training set will be data from 2012 to 2014. 
+
+```{r out of sample, echo=F, fig.pos="H"}
+
+test.data <- pdata[pdata$Date %in% paste(1995:2011), ]  
+training.data <- pdata[pdata$Date %in% paste(2012:2014), ]
+
+model.train <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked + Numb.neighbour , data=test.data, model="within")
+
+```
+
+```{r, results='asis', echo=F, warning=F, fig.pos="H"}
+  # texreg(model.train, caption = "Fixed effects model with training set", custom.coef.names = c("attacks", "log GDP", "log Hours"), digits = 3)
+
+tab <- xtable(summary(model.train)$coef, digits=c(3, 3, 3, 3, 3), caption = "Random effects model")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
+```
+
+Comparing the second and the sixth tables we can see that the sign of the coefficients are the same. Altough the model with the training data set shows that the average working hours of neighbouring countries is not a significant variable. The visual comparison of the out of sample analysis is in figure 10.
+
+
+```{r out of sample predictions, echo=F, fig.pos="H",  fig.cap="Out of sample comparison", fig.height=7, fig.width=8,  fig.pos="H"}
+
+  training.data <- ddply(training.data, ~Country + Date, function(xframe){
+    
+    xframe <<- xframe
+    
+    ## fixed effects
+    
+    intercept <- fixef(model.train)[xframe$Country[1]] %>% as.numeric()
+    X <- xframe[, c('Terror.attacks', "GDP.per.capita", "Hours.worked")]
+    fit <- model.train$coefficients[1] * X[1] + model.train$coefficients[2] * X[2] + model.train$coefficients[3] * X[3] + intercept
+    fit <- as.numeric(fit) # this is the fit of the logged number of arrivals
+    xframe$fc.w.test.data <- fit
+    
+    return(xframe)
+  })
+
+fdt <- training.data[, c("Country", "Date", "Total.Arrivals", "fc.w.test.data")]
+fdt$Total.Arrivals  <- exp(fdt$Total.Arrivals)/1000
+fdt$fc.w.test.data <- exp(fdt$fc.w.test.data)/1000
+fdt$Date <- fdt$Date %>% as.character() %>% as.numeric()
+
+## we will plot 4 countries in order to have a clear picture
+
+cn <- c( "Australia",  "Austria", "Chile", "Lithuania")
+points <- data.frame()
+
+par(mfrow=c(2,2))
+for(cc in cn){
+  
+  tmp <- fdt[fdt$Country==cc, ]
+  points <- tmp[, c("Total.Arrivals", "fc.w.test.data")]
+  
+grid.frame(x=as.numeric(tmp$Date), y=points)
+  matplot(x=as.numeric(tmp$Date), y=points, lwd=1, lty=1, cex=1.25, pch=20, xlab="Time", ylab="Arrivals, thousands", add = T, type="o",
+        col=c("firebrick1", 'cornflowerblue'))
+  legendary2(c("Original", "Test data model forecasts"), col=c("firebrick1", 'cornflowerblue'))
+  mtext(cc, col="blueviolet", line=2, cex=1.25, adj = 0)
+}
+
+```
 
 \newpage
 
