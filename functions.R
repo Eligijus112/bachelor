@@ -438,40 +438,40 @@ download.tourism <- function(path, write=T){
   return(melted.data)
 }
 
-## Function to download economic data
+## Function to download ALL economic data from world bank
 
-download.economy <- function(path) {
-  
+download.world.bank <- function(path) {
+
   createdir(paste0(path, "economy"))
 
   if(length(grep("raw economic data.csv", list.files(paste0(path, "economy"))))==1){
-      
+
       cat("The data seems to be downloaded")
       return(read.csv(paste0(path,"economy/raw economic data.csv"), stringsAsFactor=F))
-      
+
   } else{
-    
+
     decode <- read.csv("input/decoder.csv", stringsAsFactors = F)
-    
+
     if(dim(decode)[1]<1){
-      
+
       print("Decoder is missing. Please download tourism data first")
-      
+
     } else {
-      
+
       big.data <- data.frame()
-      
+
       options(warn=2) ## turns warnings into errors
-      
+
       for(cd in decode$CountryCode){
         cd <- as.character(cd)
         cat("Downloading...", decode[decode$CountryCode==cd, "CountryName"], "\n")
         url <- paste0("http://api.worldbank.org/v2/en/country/",cd,"?downloadformat=csv")
-        
+
         # we will give the downloader and unziper 5 chances to work
-        
+
         j <- 1
-        
+
         while( j <= 5 ){
           err <- tryCatch({
             download.file(url, destfile = paste0(path, "economy/tmp.zip"), mode='wb')
@@ -481,43 +481,103 @@ download.economy <- function(path) {
             j <- j + 1
             return("ERROR")
           })
-          
-          if(err[1]!="ERROR"){ 
+
+          if(err[1]!="ERROR"){
             break
           } else { j <- j + 1}
         }
-        
+
         # we find the file with the appropriate name
-        
+
         name  <- paste0("API_" ,cd ,"_DS2_en_csv_v2.csv")
-        
+
         raw.data <- read.csv(paste0(path, "economy/", name), header=F, stringsAsFactors = F)
-        
+
         # we tidy the data up
-        
+
         raw.data <- raw.data[-c(1:2), ]
-        
+
         colnames(raw.data) <- as.character(raw.data[1, ])
         raw.data <- raw.data[-1, ]
         raw.data <- plyr::rename(raw.data, c("Indicator Name" = "Indicator"))
         colnames(raw.data) <- gsub(" ", "", colnames(raw.data))
         raw.data <- raw.data[, -grep("NA", colnames(raw.data))]
-        
+
         big.data <- rbind(big.data, raw.data)
-        
+
         # removing the unnecessary files
-        
+
         files <- setdiff(list.files(paste0(path, "economy/")), "tmp.zip")
         file.remove(paste0(path, "economy/", files[1:length(files)]))
-        
+
       }
     }
-    
+
     write.csv(big.data, paste0(path,"economy/raw economic data.csv"), na="", row.names=F)
-    
+
     return(big.data)
   }
 }
+
+## we will only download GDP per capita 
+
+download.economy <- function(path) {
+
+  createdir(paste0(path, "economy"))
+
+    decode <- read.csv("input/decoder.csv", stringsAsFactors = F)
+    
+    cat("Downloading... GDP per capita \n")
+    url <- paste0('http://api.worldbank.org/v2/en/indicator/NY.GDP.PCAP.CD?downloadformat=csv')
+
+        # we will give the downloader and unziper 5 chances to work
+
+        j <- 1
+
+        while( j <= 5 ){
+          err <- tryCatch({
+            download.file(url, destfile = paste0(path, "economy/tmp.zip"), mode='wb')
+            unzip(paste0(path, "economy/tmp.zip"), exdir = paste0(path, "economy"))
+          },
+          error = function(e){
+            j <- j + 1
+            return("ERROR")
+          })
+
+          if(err[1]!="ERROR"){
+            break
+          } else { j <- j + 1}
+        }
+
+        # we find the file with the appropriate name
+
+        name  <- paste0("API_NY.GDP.PCAP.CD_DS2_en_csv_v2.csv")
+
+        raw.data <- read.csv(paste0(path, "economy/", name), header=F, stringsAsFactors = F)
+
+        # we tidy the data up
+
+        raw.data <- raw.data[-c(1:2), ]
+
+        colnames(raw.data) <- as.character(raw.data[1, ])
+        raw.data <- raw.data[-1, ]
+        raw.data <- plyr::rename(raw.data, c("Indicator Name" = "Indicator"))
+        colnames(raw.data) <- gsub(" ", "", colnames(raw.data))
+        raw.data <- raw.data[, -grep("NA", colnames(raw.data))]
+
+        # big.data <- rbind(big.data, raw.data)
+
+        # removing the unnecessary files
+
+        files <- setdiff(list.files(paste0(path, "economy/")), "tmp.zip")
+        file.remove(paste0(path, "economy/", files[1:length(files)]))
+
+    write.csv(raw.data, paste0(path,"economy/gdp per capita.csv"), na="", row.names=F)
+
+    return(raw.data)
+}
+
+
 
 # Leaving desired products
 
