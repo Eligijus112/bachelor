@@ -28,7 +28,7 @@ runApp(shinyApp(
   
   ui = fluidPage(
     
-    theme = shinytheme("cerulean"),
+    theme = shinytheme("flatly"),
     
     navbarPage("OECD tourism",
 
@@ -302,13 +302,13 @@ runApp(shinyApp(
       
       data.to.plot <- myData2()[myData2()[, "Country"]==input$cn_input2, 'Total.Arrivals']
       data.to.plot <- cbind(data.to.plot, fitted.values())
-      grid.frame(x = as.numeric(myData2()[myData2()[, "Country"]==input$cn_input2, 'Date']),
-                 y = data.to.plot, xlab="Time")
-      
+      # grid.frame(x = as.numeric(myData2()[myData2()[, "Country"]==input$cn_input2, 'Date']),
+      #            y = data.to.plot, xlab="Time")
+      # 
       matplot(x = as.numeric(myData2()[myData2()[, "Country"]==input$cn_input2, 'Date']),
               y = data.to.plot, 
-              lwd=2, lty=1, cex=2, pch=20, xlab="Time", add = T, type="o",
-              col=c('dodgerblue4', "firebrick1"))
+              lwd=3, lty=1, cex=2, pch=20, xlab="Time", type="o",
+              col=c('dodgerblue4', "firebrick1"), ylab="Total arrivals")
       
       mtext(input$cn_input2, col="blueviolet", line=2, cex=1.5, adj = 0)
       
@@ -424,13 +424,13 @@ runApp(shinyApp(
 
       data.to.plot <- training.set()[training.set()[, "Country"]==input$cn_input2, 'Total.Arrivals']
       data.to.plot <- cbind(data.to.plot, fitted.values.test())
-      grid.frame(x = as.numeric(training.set()[training.set()[, "Country"]==input$cn_input2, 'Date']),
-                 y = data.to.plot, xlab="Time")
+      # grid.frame(x = as.numeric(training.set()[training.set()[, "Country"]==input$cn_input2, 'Date']),
+      #            y = data.to.plot, xlab="Time")
 
       matplot(x = as.numeric( training.set()[ training.set()[, "Country"]==input$cn_input2, 'Date']),
               y = data.to.plot,
-              lwd=2, lty=1, cex=2, pch=20, xlab="Time", add = T, type="o",
-              col=c('dodgerblue4', "firebrick1"))
+              lwd=3, lty=1, cex=2, pch=20, xlab="Time", type="o",
+              col=c('dodgerblue4', "firebrick1"), ylab="Total arrivals")
       #
       mtext(input$cn_input2, col="blueviolet", line=2, cex=1.5, adj = 0)
 
