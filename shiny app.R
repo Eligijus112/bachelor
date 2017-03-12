@@ -20,6 +20,7 @@ library(directlabels)
 library(splines)
 library(MASS)
 library(xtable)
+library(ggthemes)
 source('functions.R')
 
 
@@ -77,7 +78,7 @@ runApp(shinyApp(
       
       # ------------ |--- constants  ----------
       
-      years.to.survey <<- 1995:2015
+      years.to.survey <<- 1970:2015
       path <<- "data/"
       
       withProgress(message = "downloading and tidying up data", value=0, { 
@@ -309,20 +310,30 @@ runApp(shinyApp(
     
     output$plot.model <- renderPlot({
       
-      data.to.plot <- myData2()[myData2()[, "Country"]==input$cn_input2, 'Total.Arrivals']
-      data.to.plot <- cbind(data.to.plot, fitted.values())
-      # grid.frame(x = as.numeric(myData2()[myData2()[, "Country"]==input$cn_input2, 'Date']),
-      #            y = data.to.plot, xlab="Time")
+      # data.to.plot <- myData2()[myData2()[, "Country"]==input$cn_input2, 'Total.Arrivals']
+      # data.to.plot <- cbind(data.to.plot, fitted.values())
+      # # grid.frame(x = as.numeric(myData2()[myData2()[, "Country"]==input$cn_input2, 'Date']),
+      # #            y = data.to.plot, xlab="Time")
+      # # 
+      # matplot(x = as.numeric(myData2()[myData2()[, "Country"]==input$cn_input2, 'Date']),
+      #         y = data.to.plot, 
+      #         lwd=3, lty=1, cex=2, pch=20, xlab="Time", type="o",
+      #         col=c('dodgerblue4', "firebrick1"), ylab="Total arrivals")
       # 
-      matplot(x = as.numeric(myData2()[myData2()[, "Country"]==input$cn_input2, 'Date']),
-              y = data.to.plot, 
-              lwd=3, lty=1, cex=2, pch=20, xlab="Time", type="o",
-              col=c('dodgerblue4', "firebrick1"), ylab="Total arrivals")
+      # mtext(input$cn_input2, col="blueviolet", line=2, cex=1.5, adj = 0)
+      # 
+      # mtext("Total Arrivals", col="firebrick3", line=1, cex=1.25, adj = 0)
+      # legendary2(c("Original", "Fitted"), col=c('dodgerblue4', "firebrick1"))
+      # 
+      data.to.plot <- cbind(myData2()[myData2()[, "Country"]==input$cn_input2, 
+                                           c("Country", "Date", "Total.Arrivals")], fitted.values())
+      data.to.plot <- melt(data.to.plot)
+      data.to.plot$variable <- gsub("Total.Arrivals", "Original data",  data.to.plot$variable)
+      data.to.plot$variable <- gsub("fitted.values()", "Forecasted data",  data.to.plot$variable)
       
-      mtext(input$cn_input2, col="blueviolet", line=2, cex=1.5, adj = 0)
-      
-      mtext("Total Arrivals", col="firebrick3", line=1, cex=1.25, adj = 0)
-      legendary2(c("Original", "Fitted"), col=c('dodgerblue4', "firebrick1"))
+      p <- ggplot(data.to.plot, aes(x=Date, y=value, colour=variable, group=variable)) + geom_line(size=1.5) + theme_grey()
+      p <- p + ggtitle("Values with full data") +  scale_color_manual(name="Type of data",values=c("firebrick1", "dodgerblue4")) + ylab("Total arrivals")
+      plot(p)
       
     })
     
@@ -431,21 +442,32 @@ runApp(shinyApp(
     
     output$out.of.sample <- renderPlot({
 
-      data.to.plot <- training.set()[training.set()[, "Country"]==input$cn_input2, 'Total.Arrivals']
-      data.to.plot <- cbind(data.to.plot, fitted.values.test())
-      # grid.frame(x = as.numeric(training.set()[training.set()[, "Country"]==input$cn_input2, 'Date']),
-      #            y = data.to.plot, xlab="Time")
+      # data.to.plot <- training.set()[training.set()[, "Country"]==input$cn_input2, 'Total.Arrivals']
+      # data.to.plot <- cbind(data.to.plot, fitted.values.test())
+      # # grid.frame(x = as.numeric(training.set()[training.set()[, "Country"]==input$cn_input2, 'Date']),
+      # #            y = data.to.plot, xlab="Time")
+      # 
+      # matplot(x = as.numeric( training.set()[ training.set()[, "Country"]==input$cn_input2, 'Date']),
+      #         y = data.to.plot,
+      #         lwd=3, lty=1, cex=2, pch=20, xlab="Time", type="o",
+      #         col=c('dodgerblue4', "firebrick1"), ylab="Total arrivals")
+      # #
+      # mtext(input$cn_input2, col="blueviolet", line=2, cex=1.5, adj = 0)
+      # 
+      # mtext("Total Arrivals", col="firebrick3", line=1, cex=1.25, adj = 0)
+      # legendary2(c("Original", "Forecasted"), col=c('dodgerblue4', "firebrick1"))
 
-      matplot(x = as.numeric( training.set()[ training.set()[, "Country"]==input$cn_input2, 'Date']),
-              y = data.to.plot,
-              lwd=3, lty=1, cex=2, pch=20, xlab="Time", type="o",
-              col=c('dodgerblue4', "firebrick1"), ylab="Total arrivals")
-      #
-      mtext(input$cn_input2, col="blueviolet", line=2, cex=1.5, adj = 0)
-
-      mtext("Total Arrivals", col="firebrick3", line=1, cex=1.25, adj = 0)
-      legendary2(c("Original", "Forecasted"), col=c('dodgerblue4', "firebrick1"))
-
+      data.to.plot <- cbind(training.set()[training.set()[, "Country"]==input$cn_input2, 
+                                          c("Country", "Date", "Total.Arrivals")], fitted.values.test())
+      data.to.plot <- melt(data.to.plot)
+      data.to.plot$variable <- gsub("Total.Arrivals", "Original data",  data.to.plot$variable)
+      data.to.plot$variable <- gsub("fitted.values.test()", "Forecasted data",  data.to.plot$variable)
+      
+      p <- ggplot(data.to.plot, aes(x=Date, y=value, colour=variable, group=variable)) + geom_line(size=1.5) + theme_grey()
+      p <- p + ggtitle("Values with test data") +  scale_color_manual(name="Type of data",values=c("firebrick1", "dodgerblue4")) + ylab("Total arrivals")
+      plot(p)
+      
+      
     })
     })
   }
