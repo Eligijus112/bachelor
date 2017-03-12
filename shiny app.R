@@ -71,12 +71,14 @@ runApp(shinyApp(
     
      
     
+    
      
     observeEvent(input$download, {
       
       # ------------ |--- constants  ----------
       
       years.to.survey <<- 1995:2015
+      path <<- "data/"
       
       withProgress(message = "downloading and tidying up data", value=0, { 
         
