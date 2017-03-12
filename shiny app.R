@@ -22,6 +22,8 @@ library(MASS)
 library(xtable)
 source('functions.R')
 
+
+
 runApp(shinyApp(
   
 # ui ---------------------------------------------------------------------- 
@@ -67,9 +69,14 @@ runApp(shinyApp(
   
    server = function(input, output, session) {
     
-
+     
     
+     
     observeEvent(input$download, {
+      
+      # ------------ |--- constants  ----------
+      
+      years.to.survey <<- 1995:2015
       
       withProgress(message = "downloading and tidying up data", value=0, { 
         
@@ -174,7 +181,7 @@ runApp(shinyApp(
       
     })
     
-    # 2 tab -------------------------------------------------------------------
+    # model tab -------------------------------------------------------------------
     
     myData2 <- reactive({ master.data })
     
