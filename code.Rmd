@@ -90,7 +90,7 @@ GDP per capita, OECD, World Bank, panel model, hours worked, terrorizm, tourism
 \end{small}
 \vspace{\baselineskip}
 
-\newpage
+
 
 \tableofcontents
 
@@ -194,6 +194,29 @@ master.data <- plyr::rename(master.data, c('GDP per capita (current US$)' = "GDP
 master.data <- plyr::rename(master.data, c('Working hours' = "Hours.worked"))
 
 ```
+
+\newpage
+
+\section{Introduction}
+
+Wikipedia gives the following definition regarding what is tourism: "Tourism is travel for pleasure; also the theory and practice of touring, the business of attracting, accommodating, and entertaining tourists, and the business of operating tours". According to WTO (World Tourism Organization):
+
+$\bullet$ 1 in 11 jobs worldwide are related to the tourism industry.
+
+$\bullet$ 10 percent of total world GDP is produced by tourism.
+
+$\bullet$ Tourism made up for about 7 percent of world's exports: 1.5 trillion US dollars.
+
+$\bullet$ In 2015 there were 1186 million tourists worldwide and this number is expected to grow up to 1.8 billion by 2030.
+
+$\bullet$ In 2015 the total receipts by tourists was about 1.26 billion US dollars.
+
+
+In this paper we want to find which economic or social variables significantely influence the tourism flows to help governments in deciding which policies to adapt in order to grow the tourism sector.
+
+
+
+\newpage
 
 \section{Countries}
 
