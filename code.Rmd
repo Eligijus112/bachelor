@@ -90,11 +90,11 @@ GDP per capita, OECD, World Bank, panel model, hours worked, terrorizm, tourism
 \end{small}
 \vspace{\baselineskip}
 
-
+\newpage
 
 \tableofcontents
 
-\newpage
+
 ```{r constants, include=FALSE}
 years.to.survey <- 1970:2015
 path <- "data/"
@@ -211,6 +211,7 @@ $\bullet$ In 2015 there were 1186 million tourists worldwide and this number is 
 
 $\bullet$ In 2015 the total receipts by tourists was about 1.26 billion US dollars.
 
+From these figures it is clear to see that every country can benefit from an increase in tourism flows. Tourism continues to demonstrate its key role in generating economic activity, employment and export revenues in the OECD area, where it directly contributes, on average, 4.1 \% of GDP, 5.9 \% of employment and 21.3 \% of service exports. Tourism offers strong potential to support job rich growth and at around 80 percent, tourism exports also generate higher than average domestic value added. International tourist arrivals surpassed 1.1 billion in 2014 (World Tourism Organization), following a resurgence in arrivals to OECD countries (6.4 \%), which increased at a faster rate than the global average (4.2 \%) (as of 2016). 
 
 In this paper we want to find which economic or social variables significantely influence the tourism flows to help governments in deciding which policies to adapt in order to grow the tourism sector.
 
