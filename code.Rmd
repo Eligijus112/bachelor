@@ -70,7 +70,7 @@ source('functions.R')
 \vspace{2\baselineskip}
 \begin{center}\textbf{Santrauka}\end{center}
 
-Šio darbo tikslas yra sudaryti turizmo modelį OECD šalims. Naudojantis pasaulinio banko (World Bank), OECD ir Merilando Universiteto duomenų baze (the Department of Homeland Security Center of Excellence led by the Maryland University) duomenimis nustatėme, kad turistų skaičius tiesiškai priklauso nuo teroristinių įvykių skaičiaus, kaimyninių valstybių metinių darbo valandų skaičiaus ir nuo BVP (bendrasis visdaus produktas) vienam asmeniui. Tiesinės priklausomybės įrodymui naudojome panelinį modelį.
+Šio darbo tikslas yra sudaryti turizmo modelį OECD šalims. Naudojantis pasaulinio banko (World Bank), OECD ir Merilando Universiteto duomenų baze (the Department of Homeland Security Center of Excellence led by the Maryland University) duomenimis nustatėme, kad turistų skaičius tiesiškai priklauso nuo teroristinių įvykių skaičiaus, kaimyninių valstybių metinių darbo valandų skaičiaus ir nuo BVP (bendrasis vidaus produktas) vienam asmeniui. Tiesinės priklausomybės įrodymui naudojome panelinį modelį.
 
 \vspace{\baselineskip}
 \noindent\textbf{Raktiniai žodžiai :}
@@ -353,7 +353,7 @@ barplot(dt.a , col='deepskyblue3',  horiz=T , las=1, cex.names = 0.7, main="Tota
 
 \newpage
 
-\subsection{Average annaul working hours}
+\subsection{Average annual working hours}
 
 Most countries in the developed world have seen average hours worked decrease significantly. This is due because of the effectiveness of new tools and technologies, overall population growth and other factors.
 
@@ -605,7 +605,7 @@ print(tab, type="latex", floating = T, only.contents = F, comment = F)
 
 As we can see from table 2 now the coefficients are logical - one terrorist attack can lead to about 0.5 percent decline in tourist arrivals. A one percent increase in GDP per capita can lead up to 0.5 increase in tourist arrivals and decreasing 1 percent of hours worked within neighboring countries leads to 0.43 percent more tourist arrivals. Table 2 does not include the intercept term and the the factor variable regarding its "goodness" of geographical place. 
 
-The intercept is missing because every country &\textbf{i}& has it's own intercept value and those values are not displayed in model output. This is the main goal of the fixed effects model because we get a different level for every country thus we take into account the heterogeneity across countries and time.
+The intercept is missing because every country $\textbf{i}$ has it's own intercept value and those values are not displayed in model output. This is the main goal of the fixed effects model because we get a different level for every country thus we take into account the heterogeneity across countries and time.
 
 The factor variable is missing because it does not change over time and the overall effect is 'transfered' to the intercept. 
 
@@ -744,7 +744,7 @@ kable(accuracy.table, format = "latex", row.names = T, caption = "Table for accu
 
 \end{center}
 
-As we can see from figure 7 and the statistics for accuracy table the fixed effects models' predictions are much closer to the original values. 
+As we can see from table 3 and the statistics for accuracy table the fixed effects models' predictions are much closer to the original values. 
 
 \newpage
 
@@ -886,7 +886,7 @@ grid.frame(x=as.numeric(tmp$Date), y=points)
 
 ```
 
-Inspecting the accuracy of the forecasts (figure 9 and table 4) we can clearly see that the fixed effects model has an advantage. This is because the intercept for each of the countries is different in the fixed effects model thus giving us a more precise model for each individual country. Having this in mind we may conclude that the fixed effect model is $\textit{better}$ in describing the total number of arrivals for OECD countries.
+Inspecting the accuracy of the forecasts (figure 9 and table 5) we can clearly see that the fixed effects model has an advantage. This is because the intercept for each of the countries is different in the fixed effects model thus giving us a more precise model for each individual country. Having this in mind we may conclude that the fixed effect model is $\textit{better}$ in describing the total number of arrivals for OECD countries.
 
 \newpage
 
@@ -952,6 +952,11 @@ grid.frame(x=as.numeric(tmp$Date), y=points)
   legendary2(c("Original", "Test data model forecasts"), col=c("firebrick1", 'cornflowerblue'))
   mtext(cc, col="blueviolet", line=2, cex=1.25, adj = 0)
 }
+
+ggdata <- melt(test.data[, c("Country", "Date", "fc.random.effect", "fc.OLS")])
+ggdata <- ggdata[ggdata$Country=="Australia", ]
+p <- ggplot(ggdata, aes(x=Date, y=value, colour=variable, group=variable)) + geom_line()
+plot(p)
 
 ```
 
