@@ -1121,6 +1121,48 @@ After trying various laggs and taking into account the economic logic behind the
 
 \newpage
 
+\section{Tests}
+
+In this paper there were implemented two tests in order to inspect the panel models: the F test for individual effects and the Haussman test to determine which model - random or fixed effects - is more suitable. 
+
+\subsection{F test}
+
+The f test that is used with the panel models in R statistical package tests the following hypothesis: assume that we have two models: 
+
+restricted
+$$y_{it} = \alpha + \beta X_{it} + \epsilon_{it}$$
+and unrestricted:
+
+$$y_{it} = \alpha + u_{i} + \beta X_{it} + \epsilon_{it}$$
+
+Then the hypothesis is 
+
+
+\[\begin{array}{lr}
+        H_{0}: u_{i} =0,  \forall i \\
+        H_{1}: \exists i:    u_{i} \neq 0,  
+        \end{array}\]
+
+The alternative hypothesis would mean that there exists a country where adding the term $u_{i}$ the r-squared statistic increases. S
+
+To test this hypothes we use the F statistic (hence the name of the test):
+
+$$F = \dfrac{(ESS_{R} - ESS_{U})/(N- 1) }{ESS_{U}/((T-1)N- K)}$$
+
+Here 
+
+$ESS_{U}$ - error sum of squares of the unrestricted model
+
+$ESS_{R}$ - error sum of squares of the restricted model
+
+$N$ - number of countries
+
+$T$ - number of time periods
+
+Under the assumption that the residuals are gaussian then the F statistic is distributed by the $\textbf{F}$ distribution with N-1, N(T-1) - K degrees of freedom.
+
+\newpage
+
 \section{Conclusion}
 
 After testing various models a conclusion was met that the fixed effects panel data model best suits the data regarding the arrivals to the OECD countries. According to the model (the model is in table 2):
