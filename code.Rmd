@@ -32,6 +32,8 @@ library(rsdmx)
 library(httr)
 library(splines)
 library(xtable)
+# library(dynpanel)
+library(devtools)
 source('functions.R')
 ```
 
@@ -977,10 +979,143 @@ grid.frame(x=as.numeric(tmp$Date), y=points)
   mtext(cc, col="blueviolet", line=2, cex=1.25, adj = 0)
 }
 
-ggdata <- melt(test.data[, c("Country", "Date", "fc.random.effect", "fc.OLS")])
-ggdata <- ggdata[ggdata$Country=="Australia", ]
-p <- ggplot(ggdata, aes(x=Date, y=value, colour=variable, group=variable)) + geom_line()
-plot(p)
+# ggdata <- melt(test.data[, c("Country", "Date", "fc.random.effect", "fc.OLS")])
+# ggdata <- ggdata[ggdata$Country=="Australia", ]
+# p <- ggplot(ggdata, aes(x=Date, y=value, colour=variable, group=variable)) + geom_line()
+# plot(p)
+
+```
+
+\newpage
+
+\subsection{Dynamic panel data model}
+
+
+In this section we will be creating a dynamic panel model (we will include lags of the variables). To determine the "best" lags we will be using the cross-validation method (MAPE statistic). We will split the data to a training set and test set like in the previous section. We will also assume that the coefficient near the terror attacs is negative, GDP.per.capita - positive and hours worked - negative. 
+
+```{r dynamic model, include=FALSE, echo=F}
+
+training.data$fc.fixed.effect <- NULL
+training.data$fc.w.test.data <- NULL
+training.data$fc.OLS <- NULL
+training.data$fc.random.effect <- NULL
+
+min.stat <- 8888
+
+for(j in c(0:1)){
+  
+  for(i in c(0:2)){
+    
+    for(h in c(0:2)){
+  
+      # model.dynamic <- suppressWarnings( pgmm(Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked,
+      #                 lag.form=list(1, j, i, h), gmm.inst = ~ Total.Arrivals, lag.gmm = list(c(2,99)),
+      #                 effect="individual",
+      #                 data=test.data, transformation = "ld"))
+      
+        model.dynamic <- suppressWarnings( pgmm(Total.Arrivals ~ Terror.attacks + GDP.per.capita,
+                       lag.form=list(1, j, i), gmm.inst = ~ Total.Arrivals, lag.gmm = list(c(2,99)),
+                       effect="individual",
+                       data=test.data))
+      
+      # model.dynamic <- suppressWarnings( pgmm(Total.Arrivals ~ lag(Total.Arrivals, 0:1) +  lag(Terror.attacks, 0:j) + lag(GDP.per.capita, 0:i) +                                                       lag(Hours.worked, 0:h) | lag(Total.Arrivals, 2:99),
+      #                                          effect="individual",
+      #                                          data=test.data))    
+      
+      ## Creating fits
+      
+      fits <- ddply(pdata, ~Country, function(xframe){
+        
+        xframe <<- xframe
+        
+        xframe <- predict.pgmm.custom(model.dynamic, xframe, j, i, h)
+        
+        return(xframe)
+        
+      })
+      
+      # Taking the training set's data
+        
+        fits <- fits[fits$Date %in% paste(2012:2014), c("Total.Arrivals", "fc.pgmm")]
+        
+        stat <- MAPE(fits$Total.Arrivals, fits$fc.pgmm)
+        
+        ## Checking for economic logic
+        
+        sign <- model.dynamic$coefficients[grep("Terror", names(model.dynamic$coefficients))]
+        
+        if(length(which(sign>0))!=0) next
+        
+        sign <- model.dynamic$coefficients[grep("Hours.worked", names(model.dynamic$coefficients))]
+        
+        if(length(which(sign<0))!=0) next
+
+        sign <- model.dynamic$coefficients[grep("GDP.per.capita", names(model.dynamic$coefficients))]
+        
+        if(length(which(sign<0))!=0) next
+        
+        cat(stat, "\n")
+        if(stat < min.stat){
+          
+          min.stat   <- stat
+          best.model <- model.dynamic
+          
+        }
+      
+    }
+    
+  }
+
+}
+
+# model.dynamic <- plm::pgmm(Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked,
+#                       lag.form=list(1, 0, 0, 1), gmm.inst = ~Total.Arrivals, lag.gmm = list(c(2,99)),
+#                       effect="individual",
+#                       data=test.data)
+
+
+```
+```{r, results='asis', echo=F, warning=F, fig.pos="H"}
+  # texreg(model.train, caption = "Fixed effects model with training set", custom.coef.names = c("attacks", "log GDP", "log Hours"), digits = 3)
+
+tab <- xtable(summary(best.model)$coef, digits=c(3, 3, 3, 3, 3), caption = "Dynamic panel data model")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
+```
+
+After trying various laggs and taking into account the economic logic behind the model we get the results in table 7. Note that the variable regarding the hours worked is dropped due to insignificance. 
+
+```{r visualizing the dynamic model, echo=F, fig.cap="Dynamic model's fits", fig.height=7, fig.width=8,  fig.pos="H"}
+#   
+# model.dynamic <- suppressWarnings( pgmm(Total.Arrivals ~ Terror.attacks + GDP.per.capita,
+#                        lag.form=list(1, 0, 0), gmm.inst = ~ Total.Arrivals, lag.gmm = list(c(2,99)),
+#                        effect="individual",
+#                        data=pdata))
+# 
+# pdata <- ddply(pdata, ~Country, function(xframe){
+#   
+#   xframe <<- xframe
+#   
+#   
+#   
+#   
+# })
+# 
+# ## we will plot 4 countries in order to have a clear picture
+# cn <- c( "Australia",  "Austria", "Chile", "Lithuania")
+# points <- data.frame()
+# 
+# par(mfrow=c(2,2))
+# for(cc in cn){
+#   
+#   tmp <- fdt[fdt$Country==cc, ]
+#   points <- tmp[, c("Total.Arrivals", "fc.fixed.effect", 'fc.random.effect')]
+#   
+# grid.frame(x=as.numeric(tmp$Date), y=points)
+#   matplot(x=as.numeric(tmp$Date), y=points, lwd=1, lty=1, cex=1.25, pch=20, xlab="Time", ylab="Arrivals, thousands", add = T, type="o",
+#         col=c('salmon1', "firebrick1", 'cornflowerblue'))
+#   legendary2(c("Original", "Fixed effect fit", "random effect fit"), col=c('salmon1', "firebrick1", 'cornflowerblue'))
+#   mtext(cc, col="blueviolet", line=2, cex=1.25, adj = 0)
+# }
 
 ```
 

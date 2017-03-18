@@ -917,9 +917,95 @@ MAE <- function(y,yhat)
 ## mean absolute percentage (prediction) error
 MAPE <- function(y,yhat,percent=TRUE)
 {
+  
+  na.index <- union(which(is.na(y)), which(is.na(yhat)))
+  
+  if(length(na.index)!=0){
+    
+    y <- y[-na.index]
+    yhat <- yhat[-na.index]
+    
+  } 
+  
   if(percent){
     100*mean(abs( (y-yhat)/y ))
   } else {
     mean(abs( (y-yhat)/y ))
   }
 }
+
+#Predictin pgmm models
+
+predict.pgmm.custom <- function(model, X.frame, j, i, h){
+  
+  coefs <- model$coefficients
+  var.names <- names(coefs)
+  
+  # Creating lags if needed
+  
+  if(length(grep("lag", var.names))!=0){
+    
+    lagged <- var.names[grep("lag", var.names)]
+  
+    for(laag in lagged){
+      
+      # extracting variable name
+      
+      x <- substr(laag, 5, length(strsplit(laag, "")[[1]]))
+      x <- gsub("[(]", "", x)
+      x <- gsub("[)]", "", x)
+      
+      xx <- strsplit(x, ",")[[1]][1]
+      
+      # extracting number of lags
+      
+      ll <- strsplit(x, ",")[[1]][2] %>% trimws()
+      
+      if(length(grep("j", ll))!=0){
+        
+        ll <- 1:j
+        
+      }
+      
+      if(length(grep("i", ll))!=0){
+        
+        ll <- 1:i
+        
+      }
+      
+      if(length(grep("h", ll))!=0){
+        
+        ll <- 1:h
+        
+      }
+      
+      # adding lags to X.frame
+      
+        for(l in ll){
+          
+          data.to.write <- lag(X.frame[, xx], as.numeric(l))
+          eval(parse(text=paste0("X.frame$`", laag,  "`<-", 'data.to.write')))
+        
+          }
+      }
+    }
+    
+  ## Calculating forecasts
+    
+    fit <- rep.int(0, dim(X.frame)[1])
+    for(cc in names(coefs)){
+    
+      fit   <- fit + coefs[which(cc==names(coefs))] * X.frame[, cc]
+      
+    }
+    
+    eval(parse(text=paste0("X.frame$fc.pgmm <-", 'fit')))
+
+ return(X.frame)    
+}
+
+
+# summary of pgmm ---------------------------------------------------------
+
+ # source("pgmm.methods.R")
+  
