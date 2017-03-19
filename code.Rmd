@@ -1143,7 +1143,7 @@ Then the hypothesis is
         H_{1}: \exists i:    u_{i} \neq 0,  
         \end{array}\]
 
-The alternative hypothesis would mean that there exists a country where adding the term $u_{i}$ the r-squared statistic increases. S
+The alternative hypothesis would mean that there exists a country where adding the term $u_{i}$ the r-squared statistic increases. 
 
 To test this hypothes we use the F statistic (hence the name of the test):
 
@@ -1160,6 +1160,41 @@ $N$ - number of countries
 $T$ - number of time periods
 
 Under the assumption that the residuals are gaussian then the F statistic is distributed by the $\textbf{F}$ distribution with N-1, N(T-1) - K degrees of freedom.
+
+\newpage
+
+\subsection{Hausman test for panel models}
+
+The Hausman test is used to determine whether $X_{it}$ are uncorrelated with $\alpha_{i}$. To test this we denote two estimators:
+
+$\widehat{\beta_{FE}}$ - fixed effects estimate. 
+
+$\widehat{\beta_{RE}}$ - random effects estimate.
+
+The hypothesis is then:
+
+ Estimator                $H_{0}$ holds              $H_{0}$ is rejected  
+-------                  -------------              -----------------
+$\widehat{\beta_{RE}}$    consistent;                 Inconsistent
+                          efficient
+$\widehat{\beta_{FE}}$    consistent;                  consistent       
+                          inefficient
+
+-------                  -------------              -----------------
+
+
+Since under null hypothesis $\widehat{\beta_{RE}}$ is efficient then 
+
+$$Var(\widehat{\beta_{FE}} - \widehat{\beta_{RE}}) =Var(\widehat{\beta_{FE}}) - Var(\widehat{\beta_{RE}})$$
+Then the Hausman statistic is defined as:
+
+$$H = \left( \widehat{\beta_{FE}} - \widehat{\beta_{RE}} \right) ^{T} \left(Var(\widehat{\beta_{FE}}) - Var(\widehat{\beta_{RE}})\right) \left( \widehat{\beta_{FE}} - \widehat{\beta_{RE}} \right)$$
+
+and 
+
+$$H \overset{asy}{\sim} \chi^2$$
+
+The main idea of this test is that if $Var(\widehat{\beta_{FE})$ is smaller than  $Var(\widehat{\beta_{RE})$ it means that the H statistic will be "large" and the null hypothesis will be rejected. This in turn means that $\widehat{\beta_{RE}$ is no efficient because there exists another statistic with a smaller variance.
 
 \newpage
 
