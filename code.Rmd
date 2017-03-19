@@ -484,9 +484,9 @@ master.data <- ddply(master.data, ~Country, function(xframe){
 
 \section{Modelling}
 
-\subsection{Panel data model}
+\subsection{Panel data structure}
 
-Panel data provides information on individual behaviour, both across individuals and over time - the data has cross-sectional and time-series dimensions. Panel data includes N individuals over T regular time periods. We can denote the model simmilary like a typical bivariate reggression model:
+Panel data provides information on individual behaviour, both across individuals and over time - the data has cross-sectional and time-series dimensions. Panel data includes N individuals over T regular time periods. We can denote a panel data model simmilary like a typical bivariate reggression model:
 
 \[
 \tag{1}
@@ -545,7 +545,7 @@ y_{i} = \begin{bmatrix}
 \end{bmatrix}
 \]
 
-For example, the 'head' and the 'tail' of the raw data which will me analysed looks like this:
+For example, the 'head' and the 'tail' of the raw data which will be analysed looks like this:
 
 ```{r visualising data table, echo=F}
 
@@ -613,6 +613,38 @@ According to this model, there is a positive influence to tourism caused by terr
 
 In this section we will be creating a fixed effects panel data model. Recall equation (1). The $\alpha_{i}$ is called the \textit{individual effect}.
 If $\alpha_{i}$ does correlate with $X_{it}$ then the panel model can be reffered to as a fixed effects model. 
+
+\subsubsection{Model assumptions}
+
+Let as assume that we have n individuals and T observations for each individual. The random effects model has the following structure:
+
+$$y_{it} = X_{it} \beta + \epsilon_{it} $$
+$$\epsilon_{it} = \alpha_{i} + \eta_{it} $$
+
+The assumptions for the errors are:
+
+$$\mathbf{E}[\eta] = 0 ; E[\eta\eta^{\prime}] = \sigma^{2}_{\eta}I_{nT}$$
+
+$$\mathbf{E}[\alpha_{i}\alpha_{j}] = 0, \forall i\neq j;  E[\alpha\alpha^{\prime}] = \sigma^{2}_{\alpha}$$
+
+$$\mathbf{E}[\alpha_{i}\eta_{j}] = 0, ;  E[\alpha] = 0$$
+
+All of the above expectations are conditional on $X$. In the fixed effects model case the $\alpha_{i}$ term is treated as an unknown parameter and has to be estimated. 
+
+\subsubsection{Obtaining estimates}
+
+To obtain the $\widehat{\beta_{FE}}$ we first "demean" the data. $\forall i$:
+
+$$y_{it} - \overline{y_{i}} = \left(X_{it} -  \overline{X_{i}}\right) \beta + \left( \alpha_{i}  - \overline{\alpha_{i}}\right) + \left( \epsilon_{i}  - \overline{\epsilon_{i}}\right)$$
+
+Now since $\overline{\alpha_{i}}$ is just $\alpha_{i}$ then the above equations simplifies to:
+
+$$\dot{y} := y_{it} - \overline{y_{i}} = \left(X_{it} -  \overline{X_{i}}\right) \beta + \left( \epsilon_{i}  - \overline{\epsilon_{i}}\right) =: \dot{X} \beta_{FE} + \dot{\epsilon}$$
+
+Now to obtain the estimate $\widehat{\beta_{FE}}$ we simply run an OLS procedure to the equation above. The estimator $\widehat{\beta_{FE}}$ is often called the within estimator. Any procedure that eliminates the term $\alpha_{i}$ can be called a $\textit{within transformation}$.
+
+
+\subsubsection{Results}
 
 ```{r fixed effects model, include=FALSE, echo=F}
 
@@ -1194,7 +1226,7 @@ and
 
 $$H \overset{asy}{\sim} \chi^2$$
 
-The main idea of this test is that if $Var(\widehat{\beta_{FE})$ is smaller than  $Var(\widehat{\beta_{RE})$ it means that the H statistic will be "large" and the null hypothesis will be rejected. This in turn means that $\widehat{\beta_{RE}$ is no efficient because there exists another statistic with a smaller variance.
+The main idea of this test is that if $Var(\widehat{\beta_{FE}})$ is smaller than  $Var(\widehat{\beta_{RE}})$ it means that the H statistic will be "large" and the null hypothesis will be rejected. This in turn means that $\widehat{\beta_{RE}}$ is no efficient because there exists another statistic with a smaller variance.
 
 \newpage
 
