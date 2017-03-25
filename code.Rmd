@@ -34,6 +34,7 @@ library(splines)
 library(xtable)
 # library(dynpanel)
 library(devtools)
+library(corrplot)
 source('functions.R')
 ```
 
@@ -129,7 +130,7 @@ dt.eco <- make.economy.great.again(dt.eco)
 
 ## OECD data on hours worked
 
-dt.oecd <- get_dataset("ANHRS")
+dt.oecd <- get_dataset("ANHRS", path="data/")
 decode  <- get_decoder("data/")  
 
 # Decoding country names
@@ -258,7 +259,7 @@ plot(p)
 
 ```
 
-To see the overal trend from all of these countries is quite difficult so we will plot the average of tourist arrivals in each year.
+To see the overal trend from all of these countries is quite difficult so we will plot the sum of tourist arrivals in each year.
 
 ```{r arrival trend, echo=F, fig.cap="Trend of tourists arrivals", fig.height=6, fig.width=7,  fig.pos="H"}
 
@@ -268,7 +269,7 @@ dt.a <- ddply(dt.a, ~Date, function(xframe){
   
   xframe <<- xframe
   
-  results <- data.frame(Country='OECD', Date=xframe$Date[1], Total.Arrivals=mean(xframe$Total.Arrivals, na.rm=T))
+  results <- data.frame(Country='OECD', Date=xframe$Date[1], Total.Arrivals=sum(xframe$Total.Arrivals, na.rm=T))
   xframe <- rbind(xframe, results)
   return(xframe[nrow(xframe), ])
 
@@ -277,7 +278,7 @@ dt.a <- ddply(dt.a, ~Date, function(xframe){
 dt.a$Total.Arrivals <- dt.a$Total.Arrivals/1000
 dt.a$Date <- as.numeric(dt.a$Date)
 
-p <- ggplot(dt.a, aes(x=Date, y=Total.Arrivals, group=Country, colour=Country, label=Country)) + geom_line(size=1.2) + ylab("Total Arrivals, thousands") + theme_bw() + scale_x_continuous(expand = c(0, 4)) + geom_dl(aes(label = Country), method = list(dl.combine("first.polygons"), cex = 1)) + geom_dl(aes(label = Country), method = list(dl.combine("last.polygons"), cex = 1)) + stat_smooth(se = FALSE, method = "lm", formula = y ~ ns(x,2),aes( colour="Square trend"), linetype="dashed")  + scale_colour_manual(values = c("coral3", "darkblue"),
+p <- ggplot(dt.a, aes(x=Date, y=Total.Arrivals, group=Country, colour=Country, label=Country)) + geom_line(size=1.2) + ylab("Total Arrivals, thousands") + theme_bw() + scale_x_continuous(expand = c(0, 4)) + geom_dl(aes(label = Country), method = list(dl.combine("first.polygons"), cex = 1)) + geom_dl(aes(label = Country), method = list(dl.combine("last.polygons"), cex = 1)) + stat_smooth(se = FALSE, method = "lm", formula = y ~ ns(x,1),aes( colour="Linear trend"), linetype="dashed")  + scale_colour_manual(values = c("coral3", "darkblue"),
                        guide = guide_legend(override.aes = list(
                          linetype = c("solid", "dashed"),
                          shape = c(16, 16)), title="Legend"))
@@ -286,7 +287,81 @@ plot(p)
 
 ```
 
-From figure 3 we can clearly see that the overal mean through the years is increasing rapidly. In this paper we will try to model these arrival values and identify the biggest factors of this process. 
+From figure 3 we can clearly see that the overal sum of tourist arrivals through the years is increasing rapidly. In this paper we will try to model these arrival values and identify the biggest factors of this process. 
+
+\subsection{Distribution of arrivals}
+
+It is interesting to see how the distribution of tourism flows changed (or not) through the years. We will divide OECD countries to several regions based on GDP per capita of the most recent year and analyze how the numbers differed between the regions. 
+
+```{r getting clusters, echo=F, fig.cap="Clusters of countries", fig.height=6, fig.width=7,  fig.pos="H"}
+
+data.for.clust <- master.data[master.data$Date=="2014", c("Country", "GDP.per.capita")]
+set.seed(20)
+
+fit <- kmeans(data.for.clust$GDP.per.capita, 6)
+data.for.clust$cluster <- fit$cluster
+
+OECD.cn <- data.frame(country = unique(data.for.clust$Country), 
+                      cluster = data.for.clust$cluster)
+malMap <- joinCountryData2Map(OECD.cn, joinCode = "NAME",
+  nameJoinColumn = "country", verbose = F, suggestForFailedCodes = F)
+
+mapCountryData(malMap, nameColumnToPlot="cluster", catMethod = "categorical",
+  missingCountryCol = gray(.8), oceanCol = 'cyan', mapTitle = "Political map of the world")
+
+```
+
+```{r getting distributions, echo=F, fig.cap="Distribution of arrivals", fig.height=6, fig.width=7,  fig.pos="H"}
+
+ggdata <- data.frame()
+
+for(yy in c('1998', '2003', '2008', '2013')){
+  data.for.distr <- master.data[master.data$Date==yy, c("Country", "GDP.per.capita", "Total.Arrivals")]
+  data.for.distr <- left_join(data.for.distr, data.for.clust[, c("Country", "cluster")])
+  
+  ## Calculating the total shares of arrivals, percent
+  
+  data.for.distr$Total.Arrivals <- data.for.distr$Total.Arrivals*100/sum(data.for.distr$Total.Arrivals)
+  
+  data.for.distr <- ddply(data.for.distr, ~cluster, function(xframe){
+    
+    xframe <<- xframe
+    
+    add.frame <- xframe[1, ]
+    add.frame$Country <- xframe$cluster[2]  
+    add.frame$Total.Arrivals <- sum(xframe$Total.Arrivals, na.rm=T) 
+    
+    xframe <- rbind(xframe, add.frame)
+    
+    xframe <- xframe[nrow(xframe), c("Country", "Total.Arrivals")]
+  
+    return(xframe)  
+  })
+  
+  ##Sorting the clusters based on the center values
+  
+  cluster.arranged <- fit$centers %>% as.data.frame()
+  cluster.arranged$name <- seq(1, by=1, length.out = dim(cluster.arranged)[1])
+  cluster.arranged <- plyr::rename(cluster.arranged, c("V1" = "value", "name" = "cluster"))
+  cluster.arranged <- arrange(cluster.arranged, value)
+  
+  data.for.distr <- merge(data.for.distr, cluster.arranged)
+  data.for.distr <- arrange(data.for.distr, value)
+  data.for.distr$Year <- yy
+  
+  ggdata <- rbind(ggdata, data.for.distr)
+
+}
+
+  # p <- ggplot(ggdata, aes(x=value, y=Total.Arrivals, group=Year, colour=Year)) + geom_line(size=1.2, col="cornflowerblue") + ylab("Share of total arrivals, percent") + xlab("Mean of cluster") + theme_bw() + ggtitle(paste("Year", yy)) + geom_point(size=2, col="dodgerblue3")
+  # plot(p)
+
+p <- ggplot(ggdata, aes(x=value, y=Total.Arrivals, group=Year, colour=Year)) + geom_line(size=1.2) + theme_bw() 
+p <- p + ylab("Share of total arrivals, percent") + xlab("Mean of cluster")
+plot(p)
+```
+
+As we can see from figure, at least visually the distribution of the number of arrivals between countries "evens up" as time goes by.
 
 \newpage
 \section{Economic variable selection}
@@ -482,6 +557,45 @@ master.data <- ddply(master.data, ~Country, function(xframe){
 
 \newpage
 
+\subsection{Correlation}
+
+Before building a model for our data we need to check the correlation between variables. We will be calculating the Pearson's correlation coefficient. The Pearson's correlation between two random variables is defined as:
+
+$$\rho = \dfrac{\mathbf{E}\left( (X - \mathbf{E}[X])(Y - \mathbf{E}[Y]) \right)}{\sigma_{X} \sigma_{Y}}$$
+
+Here:
+
+$\mathbf{E [\centerdot]}$ - expected value of $\centerdot$.
+
+$\sigma_{\centerdot}$ - standart deviation of $\centerdot$.
+
+The $\rho$ coefficient for the sample is equal to:
+
+$$\rho = \dfrac{\sum_{i=1}^{n}\left( (x_{i} - \overline{x})(y_{i} - \overline{y}) \right) }{\sqrt{\sum_{i=1}^{n}\left( (x_{i} - \overline{x})\right)}  \sqrt{\sum_{i=1}^{n}\left( (y_{i} - \overline{y})\right)} }$$
+
+```{r visualizing correlation matrix, echo=F, fig.cap="Correlation visualization", fig.height=8, fig.width=7,  fig.pos="H"}
+
+cn <- c("France", "Germany")
+
+par(mfrow=c(2,1))
+
+for(cc in cn){
+  for.corr <- master.data[master.data$Country==cc, c("Terror.attacks", "Total.Arrivals", "GDP.per.capita", "Hours.worked")]
+  M <- cor(for.corr)
+  corrplot(M, method="color", order="hclust", addCoef.col = "black", type="lower", title = paste("Correlation diagram for", cc), mar=c(0,3,1,0))
+}
+```
+
+As we can see from figure 7, terror attacks for both countries have a negative correlation with total arrivals, GDP per capita has a strong positive correlation and the hours worked variable has a strong negative effect. This trend is simmilar to all countries and thus one of the "good" model criteria will be to have the following coefficients:
+
+$\bullet$ Number of terrorist attacks should have a negative impact to tourist arrivals.
+
+$\bullet$ GDP per capita should have a positive impact to tourist arrivals.
+
+$\bullet$ Hours worked variable should have a negative impact to tourist arrivals.
+
+\newpage
+
 \section{Modelling}
 
 \subsection{Panel data structure}
@@ -641,7 +755,7 @@ Now since $\overline{\alpha_{i}}$ is just $\alpha_{i}$ then the above equations 
 
 $$\dot{y} := y_{it} - \overline{y_{i}} = \left(X_{it} -  \overline{X_{i}}\right) \beta + \left( \epsilon_{i}  - \overline{\epsilon_{i}}\right) =: \dot{X} \beta_{FE} + \dot{\epsilon}$$
 
-Now to obtain the estimate $\widehat{\beta_{FE}}$ we simply run an OLS procedure to the equation above. The estimator $\widehat{\beta_{FE}}$ is often called the within estimator. Any procedure that eliminates the term $\alpha_{i}$ can be called a $\textit{within transformation}$.
+Now to obtain the estimate $\widehat{\beta_{FE}}$ we simply run an OLS procedure to the equation above. The estimator $\widehat{\beta_{FE}}$ is often called the within estimator. Any procedure that eliminates the term $\alpha_{i}$ can be called a $\textit{within transformation}$. To obtain the $alpha_{i}$ for every $i$ we simply match the intercept coordinates that is estimated by running the reggresion for the demeaned data with the way the data was stacked. 
 
 
 \subsubsection{Results}
@@ -964,7 +1078,7 @@ model.train <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + 
 ```{r, results='asis', echo=F, warning=F, fig.pos="H"}
   # texreg(model.train, caption = "Fixed effects model with training set", custom.coef.names = c("attacks", "log GDP", "log Hours"), digits = 3)
 
-tab <- xtable(summary(model.train)$coef, digits=c(3, 3, 3, 3, 3), caption = "Random effects model")
+tab <- xtable(summary(model.train)$coef, digits=c(3, 3, 3, 3, 3), caption = "Fixed effects model")
 print(tab, type="latex", floating = T, only.contents = F, comment = F)
 ```
 
@@ -973,7 +1087,7 @@ Comparing the second and the sixth tables we can see that the sign of the coeffi
 
 ```{r out of sample predictions, echo=F, fig.pos="H",  fig.cap="Out of sample comparison", fig.height=7, fig.width=8,  fig.pos="H"}
 
-  training.data <- ddply(training.data, ~Country + Date, function(xframe){
+  pdata <- ddply(pdata, ~Country + Date, function(xframe){
     
     xframe <<- xframe
     
@@ -988,7 +1102,9 @@ Comparing the second and the sixth tables we can see that the sign of the coeffi
     return(xframe)
   })
 
-fdt <- training.data[, c("Country", "Date", "Total.Arrivals", "fc.w.test.data")]
+
+
+fdt <- pdata[, c("Country", "Date", "Total.Arrivals", "fc.w.test.data")]
 fdt$Total.Arrivals  <- exp(fdt$Total.Arrivals)/1000
 fdt$fc.w.test.data <- exp(fdt$fc.w.test.data)/1000
 fdt$Date <- fdt$Date %>% as.character() %>% as.numeric()
@@ -1009,6 +1125,7 @@ grid.frame(x=as.numeric(tmp$Date), y=points)
         col=c("firebrick1", 'cornflowerblue'))
   legendary2(c("Original", "Test data model forecasts"), col=c("firebrick1", 'cornflowerblue'))
   mtext(cc, col="blueviolet", line=2, cex=1.25, adj = 0)
+  abline(v=2012, lwd=2, lty=2, col="coral3")
 }
 
 # ggdata <- melt(test.data[, c("Country", "Date", "fc.random.effect", "fc.OLS")])
