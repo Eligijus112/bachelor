@@ -1,6 +1,7 @@
 ---
 header-includes:
   - \usepackage[L7x]{fontenc}
+bibliography: bibliography.bib
 output:
  pdf_document: 
     fig_caption: yes
@@ -36,6 +37,7 @@ library(xtable)
 library(devtools)
 library(corrplot)
 source('functions.R')
+library(car)
 ```
 
 \vskip 20pt
@@ -202,7 +204,7 @@ master.data <- plyr::rename(master.data, c('Working hours' = "Hours.worked"))
 
 \section{Introduction}
 
-Wikipedia gives the following definition regarding what is tourism: "Tourism is travel for pleasure; also the theory and practice of touring, the business of attracting, accommodating, and entertaining tourists, and the business of operating tours". According to WTO (World Tourism Organization):
+Wikipedia gives the following definition regarding what is tourism [see @tourism.definition]: "Tourism is travel for pleasure; also the theory and practice of touring, the business of attracting, accommodating, and entertaining tourists, and the business of operating tours". According to UNWTO (United Nations World Tourism Organization)[see @UNWTO]:
 
 $\bullet$ 1 in 11 jobs worldwide are related to the tourism industry.
 
@@ -224,7 +226,7 @@ In this paper we want to find which economic or social variables significantely 
 
 \section{Countries}
 
-The countries which will be analyzed are all members of the OECD (\textbf{Organisation for Economic Co-operation and Development}). Currently there are 35 member states but in this analysis we will be adding Lithuania and Costa Rica because it is strongly believed that these countries will soon join OECD.
+The countries which will be analyzed are all members of the OECD (\textbf{Organisation for Economic Co-operation and Development}) [see @OECD]. Currently there are 35 member states but in this analysis we will be adding Lithuania and Costa Rica because it is strongly believed that these countries will soon join OECD.
 
 ```{r map of OECD countries, echo=F, fig.width=8, fig.height=8, fig.cap= "Map of the OECD countries", echo=F, warning=F, include=T}
 
@@ -289,6 +291,8 @@ plot(p)
 
 From figure 3 we can clearly see that the overal sum of tourist arrivals through the years is increasing rapidly. In this paper we will try to model these arrival values and identify the biggest factors of this process. 
 
+\newpage
+
 \subsection{Distribution of arrivals}
 
 It is interesting to see how the distribution of tourism flows changed (or not) through the years. We will divide OECD countries to several regions based on GDP per capita of the most recent year and analyze how the numbers differed between the regions. 
@@ -311,7 +315,7 @@ mapCountryData(malMap, nameColumnToPlot="cluster", catMethod = "categorical",
 
 ```
 
-```{r getting distributions, echo=F, fig.cap="Distribution of arrivals", fig.height=6, fig.width=7,  fig.pos="H"}
+```{r getting distributions, echo=F, message=F, warning=F, fig.cap="Distribution of arrivals", fig.height=6, fig.width=7,  fig.pos="H"}
 
 ggdata <- data.frame()
 
@@ -369,7 +373,7 @@ As we can see from figure, at least visually the distribution of the number of a
 The aim of this paper is to create a model to help explain and forecast the total number of arrivals of tourists to a given OECD country. We want to find the function \textbf{f} in the equation:
 
 \[
-log(A)_{it}  = \textbf{f}(log(GDP)_{it}, terror_{it}, log(hours)_{it}, neighbours_{i})
+log(A)_{it}  = \textbf{f}(log(GDP)_{it}, terror_{it}, log(hours)_{it})
 \]
 
 Here 
@@ -381,9 +385,6 @@ $GDP_{it}$ - GDP per capita at a country i at time period t, thousands
 $terror_{it}$ - total number of terrorist attacks at country i at time period t
 
 $hours_{it}$ - average numbers of hours worked annualy of country's i 5 closest neighbors at time period t
-
-$neighbours_{i}$ - a factor variable indicating whether a country has a "good" geographical location or not. The measure of goodness is whether a country has at least 5 or more surounding countries which the smallest distance to country i is smaller than 100 km.
-
 
 <!-- \subsection{Motivation behind variable selection} -->
 
@@ -559,7 +560,7 @@ master.data <- ddply(master.data, ~Country, function(xframe){
 
 \subsection{Correlation}
 
-Before building a model for our data we need to check the correlation between variables. We will be calculating the Pearson's correlation coefficient. The Pearson's correlation between two random variables is defined as:
+Before building a model for our data we need to check the correlation between variables. We will be calculating the Pearson's correlation coefficient [see @econometric.methods, pp. 8]. The Pearson's correlation between two random variables is defined as:
 
 $$\rho = \dfrac{\mathbf{E}\left( (X - \mathbf{E}[X])(Y - \mathbf{E}[Y]) \right)}{\sigma_{X} \sigma_{Y}}$$
 
@@ -600,14 +601,14 @@ $\bullet$ Hours worked variable should have a negative impact to tourist arrival
 
 \subsection{Panel data structure}
 
-Panel data provides information on individual behaviour, both across individuals and over time - the data has cross-sectional and time-series dimensions. Panel data includes N individuals over T regular time periods. We can denote a panel data model simmilary like a typical bivariate reggression model:
+Panel data provides information on individual behaviour, both across individuals and over time - the data has cross-sectional and time-series dimensions. Panel data includes N individuals over T regular time periods. We can denote a panel data model simmilary like a typical bivariate reggression model [see @econometric.methods, pp. 390]:
 
 \[
 \tag{1}
   y_{it} = \alpha_{i} + \beta X_{it} + u_{it}
 \]
 
-The difference from a typical reggression model is that there are the $i$ and the $t$ terms, where $i$ denotes the individual and $t$ denotes the time period. The construction of a panel model starts with appropriately 'stacking' the data set. Assuming that y is the dependant variable and X is the matrix of the explanatory variables we need to have the following structure: 
+The difference from a typical reggression model is that there are the $i$ and the $t$ terms, where $i$ denotes the individual and $t$ denotes the time period. The construction of a panel model starts with appropriately 'stacking' the data set. Assuming that y is the dependant variable and X is the matrix of the explanatory variables we need to have the following structure [see @econometric.methods, pp. 388]: 
 
 \[
   Y = y_{i} = \begin{bmatrix}
@@ -725,7 +726,7 @@ According to this model, there is a positive influence to tourism caused by terr
 
 \subsection{Fixed effects model}
 
-In this section we will be creating a fixed effects panel data model. Recall equation (1). The $\alpha_{i}$ is called the \textit{individual effect}.
+In this section we will be creating a fixed effects panel data model [see @econometric.methods, pp. 395 - 399]. Recall equation (1). The $\alpha_{i}$ is called the \textit{individual effect}.
 If $\alpha_{i}$ does correlate with $X_{it}$ then the panel model can be reffered to as a fixed effects model. 
 
 \subsubsection{Model assumptions}
@@ -849,7 +850,7 @@ grid.frame(x=as.numeric(tmp$Date), y=points)
 \subsection{Statistics for accuracy}
 
 We can measure the goodness of fit using several statistics. We will use the the \textit{mean absolute error} (MAE), \textit{mean squared error} (MSE)
-and the \textit{mean absolute percentage error} (MAPE). These statistics are defined by:
+and the \textit{mean absolute percentage error} (MAPE) [see @accuracy]. These statistics are defined by:
 
 \[
 MSE = \dfrac{1}{n}  \sum_{i=1}^{n}\left( y - \widehat{y} \right)^{2}
@@ -922,7 +923,7 @@ As we can see from table 3 and the statistics for accuracy table the fixed effec
 
 \subsection{Random effects model}
 
-There are two main types of panel models: the fixed effects model and the random effects models. The main difference between them is the assumption of $\alpha_{i}$ regarding the regressor matrix $X_{it}$. In the random effects model case it is assumed that $\alpha_{i}$ and $X_{it}$ do not correlate.
+There are two main types of panel models: the fixed effects model and the random effects models [see @econometric.methods, pp. 391 - 393]. The main difference between them is the assumption of $\alpha_{i}$ regarding the regressor matrix $X_{it}$. In the random effects model case it is assumed that $\alpha_{i}$ and $X_{it}$ do not correlate.
 
 ```{r random effects model, include=FALSE, echo=F}
 
@@ -936,7 +937,7 @@ tab <- xtable(summary(model.random)$coef, digits=c(3, 3, 3, 3, 3), caption = "Ra
 print(tab, type="latex", floating = T, only.contents = F, comment = F)
 ```
 
-The categorical variable \textit{numb.neighbour} has been dropped due to insignificance. Comparing tables 2 and 4 we can see that the signs near the coefficients are the same and the actual values of the estimators are almost even. The random effects model has a little higher R statistic. The main difference here is that there is the intercept term and we lose some "uniqueness" to the countries which was present with the fixed effects model. One measure to determine which model is better for the given data is the Hausman test. 
+Comparing tables 2 and 4 we can see that the signs near the coefficients are the same and the actual values of the estimators are almost even. The random effects model has a little higher R statistic. The main difference here is that there is the intercept term and we lose some "uniqueness" to the countries which was present with the fixed effects model. One measure to determine which model is better for the given data is the Hausman test. 
 
 ```{r pHtest, echo=T, comment=NA}
   phtest(model.random, model.fixed)
@@ -946,9 +947,9 @@ As we can see from the test result we cannot reject the null hypothesis therefor
 
 \newpage
 
-\subsection{Fixed effects versus random effects}
+\subsection{Residuals}
 
-As we saw in the previous section the Hausman test for panel data indicated that we should use the random effects model. The test is only one of the criteria for deciding which model to use. 
+As we saw in the previous section the Hausman test for panel data indicated that we should use the random effects model. The test is only one of the criteria for deciding which model to use. Two critical assumptions of any linear model, including linear fixed-effects panel models and the random effects models, are homoscedastic and normally distributed errors.
 
 ```{r residuals of models, echo=F, fig.cap="Residuals of models", fig.height=7, fig.width=8,  fig.pos="H"}
   
@@ -967,12 +968,36 @@ mtext("Fixed effects model residuals", col="cornflowerblue", line=1, cex=1.25, a
 
 ```
 
+As we can see in figure 11 the residuals visually look very similar. 
 
-As we can see in figure 8 the residuals visually look very similar. 
-
-
-```{r estimating random model fits, echo=F, comment=NA}
+```{r distribution of residuals, echo=F, fig.cap="Distribution of the residuals", fig.height=7, fig.width=8,  fig.pos="H"}
   
+par(mfrow=c(2,2))
+
+res.random <- residuals(model.random)
+res.fixed  <- residuals(model.fixed)
+  
+hist(res.random, col = "cornsilk3", xlab = "Residuals of the random model", main="Density of the residuals")
+hist(res.fixed, col = "cornsilk3", xlab = "Residuals of the fixed effects model", main="Density of the residuals")
+
+qqnorm(res.random, ylab='Residuals', main = "Q - Q plot for random effects model", col="cornflowerblue")
+grid()
+qqline(res.random)
+
+qqnorm(res.fixed, ylab='Residuals', main = "Q - Q plot for fixed - effects model", col="cornflowerblue")
+grid()
+qqline(res.fixed)
+
+```
+
+Figure 12 shows the histogram and the quantile to quantile plot of the residuals. In both cases, the residuals appear to follow a bell - shaped curve which implies normality. Altough the q q plots show that the residuals have heavy tails. This can be expected because real life data very often is not 'clean' enough to give normally distributed errors. A more important task is to test if the errors have a constant variance. 
+
+```{r homoskedasticity, echo=F, fig.cap="Fits vs residuals", fig.height=7, fig.width=8,  fig.pos="H"}
+
+par(mfrow=c(1,2))
+res.fixed <- pdata$Total.Arrivals - pdata$fc.fixed.effect  
+plot(pdata$fc.fixed.effect, res.fixed, col="deepskyblue4", xlab="Fixed effect model fits", ylab="Residuals of fixed effects model")
+
   pdata <- ddply(pdata, ~Country + Date, function(xframe){
     
     xframe <<- xframe
@@ -988,7 +1013,14 @@ As we can see in figure 8 the residuals visually look very similar.
     return(xframe)
   })
 
+res.random <- pdata$Total.Arrivals - pdata$fc.random.effect 
+plot(pdata$fc.random.effect, res.random, col="deepskyblue4", xlab="Random effect model fits", ylab="Residuals of Random effects model")
+
 ```
+
+If there is no heteroskedasticity in the residuals we should see a pattern where the spread of points is uniform in the y-direction as we move along the x-axis. Figure 13 shows that in the random effects model case this is not true - there is a downwards pattern. Hence, according to the residuals, the 'better' model is the fixed - effects model.
+
+\subsection{Accuracy of fits}
 
 ```{r accuracy statistics of the models,  echo=F, comment=NA}
   
@@ -1058,7 +1090,7 @@ grid.frame(x=as.numeric(tmp$Date), y=points)
 
 ```
 
-Inspecting the accuracy of the forecasts (figure 9 and table 5) we can clearly see that the fixed effects model has an advantage. This is because the intercept for each of the countries is different in the fixed effects model thus giving us a more precise model for each individual country. Having this in mind we may conclude that the fixed effect model is $\textit{better}$ in describing the total number of arrivals for OECD countries.
+Inspecting the accuracy of the forecasts (figure 14 and table 5) we can clearly see that the fixed effects model has an advantage. This is because the intercept for each of the countries is different in the fixed effects model thus giving us a more precise model for each individual country. Having this in mind we may conclude that the fixed effect model is $\textit{better}$ in describing the total number of arrivals for OECD countries.
 
 \newpage
 
@@ -1276,7 +1308,7 @@ In this paper there were implemented two tests in order to inspect the panel mod
 
 \subsection{F test}
 
-The f test that is used with the panel models in R statistical package tests the following hypothesis: assume that we have two models: 
+The f test [see @F.test, pp.3-4] that is used with the panel models in R statistical package tests the following hypothesis: assume that we have two models: 
 
 restricted
 $$y_{it} = \alpha + \beta X_{it} + \epsilon_{it}$$
@@ -1314,7 +1346,7 @@ Under the assumption that the residuals are gaussian then the F statistic is dis
 
 \subsection{Hausman test for panel models}
 
-The Hausman test is used to determine whether $X_{it}$ are uncorrelated with $\alpha_{i}$. To test this we denote two estimators:
+The Hausman test [see @Hausman.test, pp.39-40] is used to determine whether $X_{it}$ are uncorrelated with $\alpha_{i}$. To test this we denote two estimators:
 
 $\widehat{\beta_{FE}}$ - fixed effects estimate. 
 
@@ -1356,4 +1388,10 @@ $\bullet$ Every terrorist attack shrinks the total number of arrivals on average
 $\bullet$ Increasing the total GDP per capita of a given country increases the tourist flows by 0.493 percent.
 
 $\bullet$ A decrease of a 1 percent of total average working hours of neighbouring countries would increase the tourism flow by 0.8 percent.
+
+\newpage
+
+# References
+
+
 
