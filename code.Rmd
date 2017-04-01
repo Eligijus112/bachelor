@@ -1172,7 +1172,44 @@ grid.frame(x=as.numeric(tmp$Date), y=points)
 \subsection{Dynamic panel data model}
 
 
-In this section we will be creating a dynamic panel model (we will include lags of the variables). To determine the "best" lags we will be using the cross-validation method (MAPE statistic). We will split the data to a training set and test set like in the previous section. We will also assume that the coefficient near the terror attacs is negative, GDP.per.capita - positive and hours worked - negative. 
+In this section we will be creating a dynamic panel model (we will include lags of the variables). First of all, the estimation of the coefficient $\delta$ in the equation:
+
+$$ y_{it} = \delta y_{it - 1} + \beta X_{it} + \alpha_{i} + \epsilon_{it} $$
+
+is not as straightforward as just adding another collumn to the regressor matrix with the lagged variable $y_{it}$. This is because the OLS estimate will be biased. This is because the $y_{it}$ is a function $\epsilon_{it}$ and thus so is $y_{it-1}$ giving us the multicolinearity problem. 
+
+Consider the simple model:
+
+$$y_{it} = \delta y_{it - 1}+ \alpha_{i} + \epsilon_{it}$$
+
+Taking the first differences we get rid of the individual effecct $\alpha_{i}$:
+
+$$\Delta y_{it} = y_{it} - y_{it - 1} = \delta y_{it-1} + \alpha_{i} + \epsilon_{it} - \delta y_{it - 2} - \alpha_{i} - \epsilon_{it-1} = \delta (y_{it-1} - y_{it-2}) + \epsilon_{it} - \epsilon_{it-1} $$
+The classic method to deal with multicolinearity is to find an instrumental variable that correlates with the endogenous variable and not with the residuals. Starting from time period t = 3:
+
+$$\Delta y_{i3} = y_{i3} - y_{i2} = \delta (y_{i2} - y_{i1}) + (\epsilon_{i3} - \epsilon_{it-2}) $$
+Here we can see that the variable $y_{i1}$ does not correlate with $(\epsilon_{i3} - \epsilon_{i2})$. 
+
+When t = 4:
+
+$$\Delta y_{i4} = y_{i4} - y_{i3} = \delta (y_{i3} - y_{i2}) + (\epsilon_{i4} - \epsilon_{i3}) $$
+Both the $y_{i1}$ and ${y_{i2}}$ are good options. Going forward up to time period T we have the instrument vector:
+
+$$(y_{i1}, y_{i2}, ..., y_{iT- 2})$$. If there are strictly exogenous variables in our system $x_{it}$ that correlate with the endogenous variable and not with the residuals they should also be included in the weight matrix diagonals (for a detailed proof [see @dynamic.panel]):
+
+
+$$W_{i} = \left( \begin{pmatrix}
+    [y_{i1}, x_{i1}, x_{i2}]       & 0 & \dots & 0 \\
+    0       &  [y_{i1}, y_{i2} x_{i1}, x_{i2}, x_{i3}] & \dots & 0 \\
+    0      & 0  & \dots & [y_{i1}, y_{i2}, ..., y_{iT-2}, x_{i1}, x_{i2}, x_{i3}, ..., x_{iT-1}]
+\end{pmatrix} \right) $$
+
+Then the unbiased \textit{Arellano and Bond} estimator is given by:
+
+
+
+
+To determine the "best" lags we will be using the cross-validation method (MAPE statistic). We will split the data to a training set and test set like in the previous section. We will also assume that the coefficient near the terror attacs is negative, GDP.per.capita - positive and hours worked - negative. 
 
 ```{r dynamic model, include=FALSE, echo=F}
 
