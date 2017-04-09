@@ -38,6 +38,7 @@ library(devtools)
 library(corrplot)
 source('functions.R')
 library(car)
+library(tseries)
 ```
 
 \vskip 20pt
@@ -101,7 +102,7 @@ GDP per capita, OECD, World Bank, panel model, hours worked, terrorizm, tourism
 
 
 ```{r constants, include=FALSE}
-years.to.survey <- 1970:2015
+years.to.survey <- 1995:2015
 path <- "data/"
 # regions <- read.csv(file="input/regions.csv", stringsAsFactors = F)
 createdir("plots")
@@ -135,6 +136,46 @@ dt.eco <- make.economy.great.again(dt.eco)
 dt.oecd <- get_dataset("ANHRS", path="data/")
 decode  <- get_decoder("data/")  
 
+# OECD data on taxes
+
+dt.tax <- read.csv("input/tax.csv")
+dt.tax <- rename(dt.tax, c("ï..LOCATION" = "Country"))
+dt.tax <- dt.tax[dt.tax$MEASURE %in% c("PC_GDP"), ]
+
+dt.tax <- ddply(dt.tax, ~Country + TIME, function(xframe){
+  
+  xframe <<- xframe
+    
+  real.name <-  decode[decode$CODE==as.character(xframe$Country[1]), "Country"]
+  if(length(real.name)==0) real.name <- xframe$Country[1]
+  xframe$Country <- real.name
+  return(xframe[nrow(xframe), ])
+  
+})
+
+# dt.tax <- ddply(dt.tax, ~Country, function(xframe){
+#   
+#   xframe <<- xframe
+#   
+#   if(length(setdiff(years.to.survey, xframe$TIME))!=0){
+#     
+#     to.add <- matrix(nrow=length(setdiff(years.to.survey, xframe$TIME)), ncol=dim(xframe)[2]) %>% as.data.frame()
+#     colnames(to.add) <- colnames(xframe) 
+#     to.add$sum <- NA
+#     to.add$TIME <- setdiff(years.to.survey, xframe$TIME)
+#     to.add$Country <- xframe$Country[1]
+#     xframe <- rbind(xframe, to.add)
+#   }
+#   
+#   xframe <- arrange(xframe, TIME)
+#    
+#   return(xframe)
+#   
+# })
+
+dt.tax <- dt.tax[, c("Country", "TIME", "Value")]
+dt.tax <- rename(dt.tax, c("TIME"= "Date", "Value"="Tax"))
+dt.tax[dt.tax$Country=="KOR", "Country"] <- "South Korea"
 # Decoding country names
 
 dt.oecd <- ddply(dt.oecd, ~COUNTRY + obsTime + EMPSTAT, function(xframe){
@@ -180,7 +221,17 @@ dt.oecd <- plyr::rename(dt.oecd, c("COUNTRY" = "Country", "obsTime" = "Date", "o
 dt.oecd <- dt.oecd[, c("Country", "Date", "Working hours")]
 
 master.data <- merge(master.data, dt.oecd)
+master.data <- merge(master.data, dt.tax)
 
+# master.data <- ddply(master.data, ~Country, function(xframe){
+#   
+#   xframe <<- xframe
+#   
+#   xframe[, 4:dim(xframe)[2]] <- apply( xframe[, 4:dim(xframe)[2]], 2, MASplineVector )
+#   
+#   return(xframe)
+#   
+# })
 # Dropping incomplete rows
 
 master.data <- master.data[complete.cases(master.data), ]
@@ -189,15 +240,57 @@ master.data <- arrange(master.data, Country)
 
 # Adding number of neighbours
 
-neighbours <- find.neighbours(unique(master.data$Country), path=path)
-
-master.data <- merge(master.data, neighbours, sort=F)
-master.data$Numb.neighbour <- as.numeric(as.character(master.data$Numb.neighbour))
+# neighbours <- find.neighbours(unique(master.data$Country), path=path)
+# 
+# master.data <- merge(master.data, neighbours, sort=F)
+# master.data$Numb.neighbour <- as.numeric(as.character(master.data$Numb.neighbour))
 
 
 master.data <- plyr::rename(master.data, c('GDP per capita (current US$)' = "GDP.per.capita"))
 master.data <- plyr::rename(master.data, c('Working hours' = "Hours.worked"))
 
+## Dropping some countries
+
+master.data <- master.data[master.data$Country != "Costa Rica", ]
+master.data <- master.data[master.data$Country %in% master.data[master.data$Date=="1995", "Country"], ]
+master.data <- master.data[master.data$Date %in% 1995:2014, ]
+
+structure.data <- read.csv("data/tourism/tourism structure.csv")
+structure.data <- structure.data %>% dplyr::select(Country, Variable, Year, Value)
+structure.data$Country <- gsub("Korea", "South Korea", structure.data$Country)
+structure.data$Variable <- gsub("Korea", "South Korea", structure.data$Variable)
+structure.data <- structure.data[structure.data$Variable %in% dt.oecd$Country & structure.data$Country %in% dt.oecd$Country, ]
+structure.data <- rename(structure.data, c("Value" = "Tourist.arrivals", "Year"="Date"))
+
+## Local economic variables
+
+structure.data <- merge(structure.data, master.data[, c("Country", "Date", "GDP.per.capita")])
+structure.data <- merge(structure.data, master.data[, c("Country", "Date", "Terror.attacks")])
+structure.data <- merge(structure.data, master.data[, c("Country", "Date", "Tax")])
+
+## Adding the appropriate economic variables
+
+structure.data <- ddply(structure.data, ~Country + Date, function(xframe){
+  
+  xframe <<- xframe
+  xframe$GDP.abroad <- sum(dt.eco[dt.eco$Country %in% xframe$Variable & dt.eco$Date==xframe$Date[1], "value"])
+  xframe$hours.abroad <- mean(dt.oecd[dt.oecd$Country %in% xframe$Variable & dt.oecd$Date==xframe$Date[1], "Working hours"])
+  
+  return(xframe[nrow(xframe), ])
+})
+
+structure.data$Variable <- NULL
+p.structure <-  plm.data(structure.data, index = c("Country", "Date")) 
+log.vars <- c("GDP.per.capita", "GDP.abroad", "hours.abroad", "Tourist.arrivals")
+p.structure[, log.vars] <- apply(p.structure[, log.vars], c(1, 2), log)
+p.structure[, 3:dim(p.structure)[2]] <- apply(p.structure[, 3:dim(p.structure)[2]], 2, function(x){
+  
+  return(c(NA, diff(x)))
+  
+  })
+
+model.naive <- plm(Tourist.arrivals ~  Tax +  GDP.abroad + hours.abroad, data=p.structure, model = "within")
+summary(model.naive)
 ```
 
 \newpage
@@ -226,7 +319,7 @@ In this paper we want to find which economic or social variables significantely 
 
 \section{Countries}
 
-The countries which will be analyzed are all members of the OECD (\textbf{Organisation for Economic Co-operation and Development}) [see @OECD]. Currently there are 35 member states but in this analysis we will be adding Lithuania and Costa Rica because it is strongly believed that these countries will soon join OECD.
+The countries which will be analyzed are all members of the OECD (\textbf{Organisation for Economic Co-operation and Development}) [see @OECD]. Currently there are 35 member states but in this analysis we will be adding Lithuania because it is strongly believed that this country will soon join OECD. 
 
 ```{r map of OECD countries, echo=F, fig.width=8, fig.height=8, fig.cap= "Map of the OECD countries", echo=F, warning=F, include=T}
 
@@ -241,6 +334,8 @@ mapCountryData(malMap, nameColumnToPlot="OECD", catMethod = "categorical",
 
 
 ```
+
+As you can see from the map, not all 36 countries mentioned are visualized. This is because they are dropped due to lack of data. 
 
 \newpage
 
@@ -373,7 +468,7 @@ As we can see from figure, at least visually the distribution of the number of a
 The aim of this paper is to create a model to help explain and forecast the total number of arrivals of tourists to a given OECD country. We want to find the function \textbf{f} in the equation:
 
 \[
-log(A)_{it}  = \textbf{f}(log(GDP)_{it}, terror_{it}, log(hours)_{it})
+log(A)_{it}  = \textbf{f}(\Delta log(GDP)_{it}, \Delta terror_{it}, \Delta log(hours)_{it})
 \]
 
 Here 
@@ -384,7 +479,7 @@ $GDP_{it}$ - GDP per capita at a country i at time period t, thousands
 
 $terror_{it}$ - total number of terrorist attacks at country i at time period t
 
-$hours_{it}$ - average numbers of hours worked annualy of country's i 5 closest neighbors at time period t
+$hours_{it}$ - average numbers of hours worked annualy of country's i neighbors at time period t
 
 <!-- \subsection{Motivation behind variable selection} -->
 
@@ -449,7 +544,7 @@ dt.a <- apply(dt.a, c(1,2), function(x) {as.numeric(x)})
 names(dt.a) <- nn
 dt.a <- sort(dt.a)
 par(mai=c(1,2,1,1))
-barplot(dt.a , col='deepskyblue3',  horiz=T , las=1, cex.names = 0.7, main="Total number of attacks, 1970 - 2014")
+barplot(dt.a , col='deepskyblue3',  horiz=T , las=1, cex.names = 0.7, main="Total number of attacks, 1995 - 2014")
 
 ```
 
@@ -527,7 +622,7 @@ master.data <- ddply(master.data, ~Country, function(xframe){
   #  
   # if(length(friend)==0){
     
-    friend <- rownames(dmat)[which(dmat[, xframe$Country[1]] %in% sort(dmat[, xframe$Country[1]])[1:5])] 
+    friend <- rownames(dmat)[which(dmat[, xframe$Country[1]] %in% sort(dmat[, xframe$Country[1]]))] 
 
     friend <- friend[-which(friend==xframe$Country[1])]
      
@@ -555,47 +650,6 @@ master.data <- ddply(master.data, ~Country, function(xframe){
 
 
 ```
-
-\newpage
-
-\subsection{Correlation}
-
-Before building a model for our data we need to check the correlation between variables. We will be calculating the Pearson's correlation coefficient [see @econometric.methods, pp. 8]. The Pearson's correlation between two random variables is defined as:
-
-$$\rho = \dfrac{\mathbf{E}\left( (X - \mathbf{E}[X])(Y - \mathbf{E}[Y]) \right)}{\sigma_{X} \sigma_{Y}}$$
-
-Here:
-
-$\mathbf{E [\centerdot]}$ - expected value of $\centerdot$.
-
-$\sigma_{\centerdot}$ - standart deviation of $\centerdot$.
-
-The $\rho$ coefficient for the sample is equal to:
-
-$$\rho = \dfrac{\sum_{i=1}^{n}\left( (x_{i} - \overline{x})(y_{i} - \overline{y}) \right) }{\sqrt{\sum_{i=1}^{n}\left( (x_{i} - \overline{x})\right)}  \sqrt{\sum_{i=1}^{n}\left( (y_{i} - \overline{y})\right)} }$$
-
-```{r visualizing correlation matrix, echo=F, fig.cap="Correlation visualization", fig.height=8, fig.width=7,  fig.pos="H"}
-
-cn <- c("France", "Germany")
-
-par(mfrow=c(2,1))
-
-for(cc in cn){
-  for.corr <- master.data[master.data$Country==cc, c("Terror.attacks", "Total.Arrivals", "GDP.per.capita", "Hours.worked")]
-  M <- cor(for.corr)
-  corrplot(M, method="color", order="hclust", addCoef.col = "black", type="lower", title = paste("Correlation diagram for", cc), mar=c(0,3,1,0))
-}
-```
-
-As we can see from figure 7, terror attacks for both countries have a negative correlation with total arrivals, GDP per capita has a strong positive correlation and the hours worked variable has a strong negative effect. This trend is simmilar to all countries and thus one of the "good" model criteria will be to have the following coefficients:
-
-$\bullet$ Number of terrorist attacks should have a negative impact to tourist arrivals.
-
-$\bullet$ GDP per capita should have a positive impact to tourist arrivals.
-
-$\bullet$ Hours worked variable should have a negative impact to tourist arrivals.
-
-\newpage
 
 \section{Modelling}
 
@@ -670,28 +724,120 @@ pdata$Total.Arrivals <- log(pdata$Total.Arrivals)
 pdata$GDP.per.capita <- log(pdata$GDP.per.capita)
 pdata$Hours.worked   <- log(pdata$Hours.worked)
 
-## Creating a factor indicating a "good" geographical location
-
-pdata$Numb.neighbour <- sapply(pdata$Numb.neighbour, function(x){
+pdata <- ddply(pdata, ~Country, function(xframe){
   
-  if(x < 5) x <- 0
-  if(x >=5) x <- 1
-  return(x)
+  xframe <<- xframe
+  
+  xframe[, 3:dim(xframe)[2]] <- apply(xframe[, 3:dim(xframe)[2]], 2, function(x){
+    
+    x <<- x
+    
+    x <- c(NA, diff(x))
+    
+    return(x)
+    
+  })
+  
+  return(xframe)
   
 })
 
-pdata$Numb.neighbour <- as.factor(pdata$Numb.neighbour)
+pdata <- pdata[pdata$Date!="1995", ]
 kable(head(pdata), format = "latex", row.names = F)
 kable(tail(pdata), format = "latex", row.names = F)
 
 ```
 
+\newpage
 
-```{r pooling panel model, include=FALSE, echo=F, warning=F}
+<!-- \subsection{Correlation} -->
 
-model.ols <- lm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked + Numb.neighbour , data=pdata)
-# summary(model.ols)
+<!-- Before building a model for our data we need to check the correlation between variables. We will be calculating the Pearson's correlation coefficient [see @econometric.methods, pp. 8]. The Pearson's correlation between two random variables is defined as: -->
+
+<!-- $$\rho = \dfrac{\mathbf{E}\left( (X - \mathbf{E}[X])(Y - \mathbf{E}[Y]) \right)}{\sigma_{X} \sigma_{Y}}$$ -->
+
+<!-- Here: -->
+
+<!-- $\mathbf{E [\centerdot]}$ - expected value of $\centerdot$. -->
+
+<!-- $\sigma_{\centerdot}$ - standart deviation of $\centerdot$. -->
+
+<!-- The $\rho$ coefficient for the sample is equal to: -->
+
+<!-- $$\rho = \dfrac{\sum_{i=1}^{n}\left( (x_{i} - \overline{x})(y_{i} - \overline{y}) \right) }{\sqrt{\sum_{i=1}^{n}\left( (x_{i} - \overline{x})\right)}  \sqrt{\sum_{i=1}^{n}\left( (y_{i} - \overline{y})\right)} }$$ -->
+
+<!-- ```{r visualizing correlation matrix, echo=F, fig.cap="Correlation visualization", fig.height=8, fig.width=7,  fig.pos="H"} -->
+
+<!-- # cn <- c("France", "United Kingdom") -->
+<!-- #  -->
+<!-- # par(mfrow=c(2,1)) -->
+
+<!-- # for(cc in cn){ -->
+<!--   # for.corr <- master.data[, c("Terror.attacks", "Total.Arrivals", "GDP.per.capita", "Hours.worked")] -->
+<!--   # M <- cor(for.corr) -->
+<!--   # corrplot(M, method="color", order="hclust", addCoef.col = "black", type="lower", title = paste("Correlation diagram for", cc), mar=c(0,3,1,0)) -->
+<!-- # } -->
+
+<!-- ``` -->
+
+<!-- As we can see from figure 7, terror attacks for both countries have a negative correlation with total arrivals, GDP per capita has a strong positive correlation and the hours worked variable has a strong negative effect. This trend is simmilar to all countries and thus one of the "good" model criteria will be to have the following coefficients: -->
+
+<!-- $\bullet$ Number of terrorist attacks should have a negative impact to tourist arrivals. -->
+
+<!-- $\bullet$ GDP per capita should have a positive impact to tourist arrivals. -->
+
+<!-- $\bullet$ Hours worked variable should have a negative impact to tourist arrivals. -->
+
+
+\newpage
+
+\subsection{Unit roots}
+
+Before modelling we need to check whether there are unit roots in our data set. We will use the \textit{purtest()} function to check for this. This function implements the Maddala and Wu test.
+
+```{r adf, echo=T, warning=F, comment=NA}
+
+Arrivals <- as.data.frame(split(pdata$Total.Arrivals, pdata$Country))
+purtest(Arrivals, pmax = 4, exo = "intercept", test = "madwu")
+
+GDP <- as.data.frame(split(pdata$GDP.per.capita, pdata$Country))
+purtest(GDP, pmax = 4, exo = "intercept", test = "madwu")
+
+Hours <- as.data.frame(split(pdata$Hours.worked, pdata$Country))
+purtest(Hours, pmax = 4, exo = "intercept", test = "madwu")
+
+Attacks <- as.data.frame(split(pdata$Terror.attacks, pdata$Country))
+purtest(Attacks, pmax = 4, exo = "intercept", test = "hadri")
+
+Infrastructure <- as.data.frame(split(pdata$Tax, pdata$Country))
+purtest(Infrastructure, pmax = 4, exo = "intercept", test = "madwu")
+
 ```
+
+The alternative hypothesis for the test is that the data does not have a unit root. According to the tests no variable has a unit root. The test does not show a statistic for the terrorist attacks variable because many variables there are equal to 0. We wil conclude that the variable is stationary for all countries. 
+
+\newpage
+
+\subsection{Multicolinearity}
+
+Multicollinearity refers to predictors that are correlated with other predictors. In other words, the correlation between the explanatory variables are high. Severe multicollinearity is a major problem, because it increases the variance of the regression coefficients, making them unstable. To test whether there is a multicollinearity problem between the variables that we have chosen, we will regress the variables one with another and check whether one significantly influences another.
+
+```{r multicolinearity, echo=F, warning=F, comment=NA}
+
+model1 <- lm(GDP.per.capita ~ Hours.worked, data=pdata)
+model2 <- lm(Hours.worked ~ GDP.per.capita, data=pdata)
+model2 <- lm(Hours.worked ~ Infrastructure, data=pdata)
+
+```
+
+```{r multicolinearity results, results="asis", echo=F, warning=F}
+tab <- xtable(summary(model1)$coef, digits=c(3, 3, 3, 3, 3), caption = "OLS model")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
+
+tab <- xtable(summary(model2)$coef, digits=c(3, 3, 3, 3, 3), caption = "OLS model")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
+```
+The variable regarding terrorist attacks has no correlation with the others, but hours worked and GDP per capita show a strong correlation with one another. According to the models, a one percent change in the hours worked variable would lead to the change of GDP per capita for 6.628 percent. To deal with the multicolinearity problem we wil drop the hours worked variable and continue without it.
 
 \newpage
 
@@ -709,10 +855,10 @@ And the estimator is derived solving the equation:
 \widehat{\beta} = \left( X X^{T} \right)^{-1}X^{T}y
 \]
 
+```{r pooling panel model, include=FALSE, echo=F, warning=F}
 
-```{r, results='asis', echo=F, warning=F}
-   # texreg(model.ols, caption = "OLS model", custom.coef.names = c("Intercept", "attacks", "log GDP", "log Hours", "neighbours"), center = T,
-   #        custom.model.names = "OLS model")
+model.ols <- lm(formula = Total.Arrivals ~ Terror.attacks + Hours.worked + Tax, data=pdata)
+# summary(model.ols)
 ```
 
 ```{r xtable, results="asis", echo=F, warning=F}
@@ -720,7 +866,7 @@ tab <- xtable(summary(model.ols)$coef, digits=c(3, 3, 3, 3, 3), caption = "OLS m
 print(tab, type="latex", floating = T, only.contents = F, comment = F)
 ```
 
-According to this model, there is a positive influence to tourism caused by terrorist attacks, which is not logical. Given that this model does not take into consideration the panel structure of the data, we will not be using straighforward OLS in our analysis. 
+The problem with this model is that while giving consistent estimators, the standart errors of those estimators will be understated. Also, OLS is not efficient compared to the generalized least-squares procedure [see @econometric.methods, pp. 391].
 
 \newpage
 
@@ -763,7 +909,7 @@ Now to obtain the estimate $\widehat{\beta_{FE}}$ we simply run an OLS procedure
 
 ```{r fixed effects model, include=FALSE, echo=F}
 
-model.fixed <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked + Numb.neighbour , data=pdata, model="within")
+model.fixed <- plm(formula = Total.Arrivals ~ Terror.attacks + Hours.worked + Tax, data=pdata, model="within")
 # summary(model.fixed)
 ```
 
@@ -776,11 +922,11 @@ print(tab, type="latex", floating = T, only.contents = F, comment = F)
 
 ```
 
-As we can see from table 2 now the coefficients are logical - one terrorist attack can lead to about 0.5 percent decline in tourist arrivals. A one percent increase in GDP per capita can lead up to 0.5 increase in tourist arrivals and decreasing 1 percent of hours worked within neighboring countries leads to 0.43 percent more tourist arrivals. Table 2 does not include the intercept term and the the factor variable regarding its "goodness" of geographical place. 
+<!-- As we can see from table 2 now the coefficients are logical - one terrorist attack can lead to about 0.5 percent decline in tourist arrivals. A one percent increase in GDP per capita can lead up to 0.5 increase in tourist arrivals and decreasing 1 percent of hours worked within neighboring countries leads to 0.43 percent more tourist arrivals. Table 2 does not include the intercept term and the the factor variable regarding its "goodness" of geographical place.  -->
+
+As we can see from table 2 the coefficients have a simmilar signs to them as in the OLS case. A one percent increase to the GDP per capita variable would lead to about 7.5 percent increase to the total number of arrivals. On another hand, a single terrorist attack would decline the number of arrivals by about 0.2 percent.
 
 The intercept is missing because every country $\textbf{i}$ has it's own intercept value and those values are not displayed in model output. This is the main goal of the fixed effects model because we get a different level for every country thus we take into account the heterogeneity across countries and time.
-
-The factor variable is missing because it does not change over time and the overall effect is 'transfered' to the intercept. 
 
 Applying the F test for individual effects gives the result:
 
@@ -788,7 +934,7 @@ Applying the F test for individual effects gives the result:
   pFtest(model.fixed, model.ols)
 ```
 
-According to these results the fixed effects model is better in explaining the number of arrivals compared to the OLS model.
+According to these results the fixed effects model is not significantly better in explaining the number of arrivals compared to the OLS model.
 
 ```{r estimating ols and fixed model fits, echo=F, comment=NA}
   
@@ -800,17 +946,17 @@ According to these results the fixed effects model is better in explaining the n
     ## fixed effects
     
     intercept <- fixef(model.fixed)[xframe$Country[1]] %>% as.numeric()
-    X <- xframe[, c('Terror.attacks', "GDP.per.capita", "Hours.worked")]
-    fit <- model.fixed$coefficients[1] * X[1] + model.fixed$coefficients[2] * X[2] + model.fixed$coefficients[3] * X[3] + intercept
+    X <- xframe[, c('Terror.attacks', "GDP.per.capita")]
+    fit <- model.fixed$coefficients[1] * X[1] + model.fixed$coefficients[2] * X[2] + intercept
     fit <- as.numeric(fit) # this is the fit of the logged number of arrivals
     xframe$fc.fixed.effect <- fit
     
     ## OLS
     
-    X <- xframe[, c('Terror.attacks', "GDP.per.capita", "Hours.worked", "Numb.neighbour")] %>% as.numeric()
-    fit <- model.ols$coefficients[2] * X[1] + model.ols$coefficients[3] * X[2] + model.ols$coefficients[4] * X[3] + model.ols$coefficients[5] * X[4] 
+    X <- xframe[, c('Terror.attacks', "GDP.per.capita")] 
+    fit <- model.ols$coefficients[2] * X[1] + model.ols$coefficients[3] * X[2] 
     fit <- fit + model.ols$coefficients[1] 
-    xframe$fc.OLS <- fit
+    xframe$fc.OLS <- as.numeric(fit)
     
     return(xframe)
   })
@@ -821,13 +967,13 @@ According to these results the fixed effects model is better in explaining the n
 ```{r visualizing the differences between fits, echo=F, fig.cap="OLS and fixed effects model comparison", fig.height=7, fig.width=8,  fig.pos="H"}
   
 fdt <- pdata[, c("Country", "Date", "Total.Arrivals", "fc.fixed.effect", 'fc.OLS')]
-fdt$Total.Arrivals  <- exp(fdt$Total.Arrivals)/1000
-fdt$fc.fixed.effect <- exp(fdt$fc.fixed.effect)/1000
-fdt$fc.OLS          <- exp(fdt$fc.OLS)/1000
+# fdt$Total.Arrivals  <- exp(fdt$Total.Arrivals)/1000
+# fdt$fc.fixed.effect <- exp(fdt$fc.fixed.effect)/1000
+# fdt$fc.OLS          <- exp(fdt$fc.OLS)/1000
 fdt$Date <- fdt$Date %>% as.character() %>% as.numeric()
 
 ## we will plot 4 countries in order to have a clear picture
-cn <- c( "Australia",  "Austria", "Chile", "Lithuania")
+cn <- c( "Australia",  "Austria", "France", "Lithuania")
 points <- data.frame()
 
 par(mfrow=c(2,2))
@@ -879,9 +1025,9 @@ $n$ - number of observations
 ```{r forecast accuracy, echo=F, results= "asis", fig.pos="H"}
   
 fdt <- pdata[, c("Country", "Date", "Total.Arrivals", "fc.fixed.effect", 'fc.OLS')]
-fdt$Total.Arrivals  <- exp(fdt$Total.Arrivals)
-fdt$fc.fixed.effect <- exp(fdt$fc.fixed.effect)
-fdt$fc.OLS          <- exp(fdt$fc.OLS)
+# fdt$Total.Arrivals  <- exp(fdt$Total.Arrivals)
+# fdt$fc.fixed.effect <- exp(fdt$fc.fixed.effect)
+# fdt$fc.OLS          <- exp(fdt$fc.OLS)
 
 accuracy.table <- matrix(ncol=2, nrow=3) %>% as.data.frame()
 colnames(accuracy.table) <- c("OLS", "Fixed effects")
@@ -912,12 +1058,12 @@ accuracy.table <- apply(accuracy.table, c(1, 2), function(x) {
   })
 
 
-kable(accuracy.table, format = "latex", row.names = T, caption = "Table for accuracy")
+kable(accuracy.table[c(1,3), ], format = "latex", row.names = T, caption = "Table for accuracy")
 ```
 
 \end{center}
 
-As we can see from table 3 and the statistics for accuracy table the fixed effects models' predictions are much closer to the original values. 
+As we can see from table 3 and the statistics for accuracy table the fixed effects models' predictions are closer to the original values. 
 
 \newpage
 
@@ -927,7 +1073,7 @@ There are two main types of panel models: the fixed effects model and the random
 
 ```{r random effects model, include=FALSE, echo=F}
 
-model.random <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked, data=pdata, model="random")
+model.random <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita , data=pdata, model="random")
 # summary(model.random)
 ```
 ```{r, results='asis', echo=F, warning=F}
@@ -941,7 +1087,7 @@ Comparing tables 2 and 4 we can see that the signs near the coefficients are the
 
 ```{r pHtest, echo=T, comment=NA}
   phtest(model.random, model.fixed)
-```
+w```
 
 As we can see from the test result we cannot reject the null hypothesis therefore we conclude that the random effects coefficients are more efficient and are consistent. Therefore the test implies that we sould use the random effects model.
 
@@ -1004,9 +1150,9 @@ plot(pdata$fc.fixed.effect, res.fixed, col="deepskyblue4", xlab="Fixed effect mo
     
     ## random effects
   
-    X <- xframe[, c('Terror.attacks', "GDP.per.capita", "Hours.worked")]
+    X <- xframe[, c('Terror.attacks', "GDP.per.capita")]
     coef <- model.random$coefficients
-    fit <- coef[1] + coef[2] * X[1] + coef[3]* X[2] + coef[4] * X[3] 
+    fit <- coef[1] + coef[2] * X[1] + coef[3]* X[2]
     fit <- as.numeric(fit) # this is the fit of the logged number of arrivals
     xframe$fc.random.effect <- fit
     
@@ -1018,16 +1164,16 @@ plot(pdata$fc.random.effect, res.random, col="deepskyblue4", xlab="Random effect
 
 ```
 
-If there is no heteroskedasticity in the residuals we should see a pattern where the spread of points is uniform in the y-direction as we move along the x-axis. Figure 13 shows that in the random effects model case this is not true - there is a downwards pattern. Hence, according to the residuals, the 'better' model is the fixed - effects model.
+If there is no heteroskedasticity in the residuals we should see a pattern where the spread of points is uniform in the y-direction as we move along the x-axis. Figure 13 shows that both the models suffer from heteroskedasticity.
 
 \subsection{Accuracy of fits}
 
 ```{r accuracy statistics of the models,  echo=F, comment=NA}
   
 fdt <- pdata[, c("Country", "Date", "Total.Arrivals", "fc.fixed.effect", 'fc.random.effect')]
-fdt$Total.Arrivals    <- exp(fdt$Total.Arrivals)
-fdt$fc.fixed.effect   <- exp(fdt$fc.fixed.effect)
-fdt$fc.random.effect  <- exp(fdt$fc.random.effect)
+# fdt$Total.Arrivals    <- exp(fdt$Total.Arrivals)
+# fdt$fc.fixed.effect   <- exp(fdt$fc.fixed.effect)
+# fdt$fc.random.effect  <- exp(fdt$fc.random.effect)
 
 accuracy.table <- matrix(ncol=2, nrow=3) %>% as.data.frame()
 colnames(accuracy.table) <- c("Random effects", "Fixed effects")
@@ -1058,7 +1204,7 @@ accuracy.table <- apply(accuracy.table, c(1, 2), function(x) {
   })
 
 
-kable(accuracy.table, format = "latex", row.names = T, caption = "Random vs fixed model accuracy")
+kable(accuracy.table[c(1, 3), ], format = "latex", row.names = T, caption = "Random vs fixed model accuracy")
 
 
 ```
@@ -1066,13 +1212,13 @@ kable(accuracy.table, format = "latex", row.names = T, caption = "Random vs fixe
 ```{r visualizing the differences between random and fixed fits, echo=F, fig.cap="OLS and fixed effects model comparison", fig.height=7, fig.width=8,  fig.pos="H"}
   
 fdt <- pdata[, c("Country", "Date", "Total.Arrivals", "fc.fixed.effect", 'fc.random.effect')]
-fdt$Total.Arrivals  <- exp(fdt$Total.Arrivals)/1000
-fdt$fc.fixed.effect <- exp(fdt$fc.fixed.effect)/1000
-fdt$fc.random.effect         <- exp(fdt$fc.random.effect)/1000
+# fdt$Total.Arrivals  <- exp(fdt$Total.Arrivals)/1000
+# fdt$fc.fixed.effect <- exp(fdt$fc.fixed.effect)/1000
+# fdt$fc.random.effect         <- exp(fdt$fc.random.effect)/1000
 fdt$Date <- fdt$Date %>% as.character() %>% as.numeric()
 
 ## we will plot 4 countries in order to have a clear picture
-cn <- c( "Australia",  "Austria", "Chile", "Lithuania")
+cn <- c( "Australia",  "Austria", "France", "Lithuania")
 points <- data.frame()
 
 par(mfrow=c(2,2))
@@ -1090,7 +1236,7 @@ grid.frame(x=as.numeric(tmp$Date), y=points)
 
 ```
 
-Inspecting the accuracy of the forecasts (figure 14 and table 5) we can clearly see that the fixed effects model has an advantage. This is because the intercept for each of the countries is different in the fixed effects model thus giving us a more precise model for each individual country. Having this in mind we may conclude that the fixed effect model is $\textit{better}$ in describing the total number of arrivals for OECD countries.
+Inspecting the accuracy of the forecasts (figure 14 and table 5) we can see that the fixed effects model has an advantage. This is because the intercept for each of the countries is different in the fixed effects model thus giving us a more precise model for each individual country. Nevertheless, the Hausman test concluded that the random effects model is better than the fixed-effects one. 
 
 \newpage
 
@@ -1103,7 +1249,7 @@ In this section we will split our data into \textit{test} and \textit{training} 
 test.data <- pdata[pdata$Date %in% paste(1995:2011), ]  
 training.data <- pdata[pdata$Date %in% paste(2012:2014), ]
 
-model.train <- plm(formula = Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked + Numb.neighbour , data=test.data, model="within")
+model.train <- plm(formula = Total.Arrivals ~ Terror.attacks  + GDP.per.capita, data=test.data, model="random")
 
 ```
 
@@ -1114,7 +1260,7 @@ tab <- xtable(summary(model.train)$coef, digits=c(3, 3, 3, 3, 3), caption = "Fix
 print(tab, type="latex", floating = T, only.contents = F, comment = F)
 ```
 
-Comparing the second and the sixth tables we can see that the sign of the coefficients are the same. Altough the model with the training data set shows that the average working hours of neighbouring countries is not a significant variable. The visual comparison of the out of sample analysis is in figure 10.
+Comparing the second and the sixth tables we can see that the sign of the coefficients are the same. The visual comparison of the out of sample analysis is in figure 10.
 
 
 ```{r out of sample predictions, echo=F, fig.pos="H",  fig.cap="Out of sample comparison", fig.height=7, fig.width=8,  fig.pos="H"}
@@ -1125,9 +1271,8 @@ Comparing the second and the sixth tables we can see that the sign of the coeffi
     
     ## fixed effects
     
-    intercept <- fixef(model.train)[xframe$Country[1]] %>% as.numeric()
-    X <- xframe[, c('Terror.attacks', "GDP.per.capita", "Hours.worked")]
-    fit <- model.train$coefficients[1] * X[1] + model.train$coefficients[2] * X[2] + model.train$coefficients[3] * X[3] + intercept
+    X <- xframe[, c('Terror.attacks', "GDP.per.capita")]
+    fit <- model.train$coefficients[1] + model.train$coefficients[2] * X[1] + model.train$coefficients[3] * X[2]
     fit <- as.numeric(fit) # this is the fit of the logged number of arrivals
     xframe$fc.w.test.data <- fit
     
@@ -1137,13 +1282,13 @@ Comparing the second and the sixth tables we can see that the sign of the coeffi
 
 
 fdt <- pdata[, c("Country", "Date", "Total.Arrivals", "fc.w.test.data")]
-fdt$Total.Arrivals  <- exp(fdt$Total.Arrivals)/1000
-fdt$fc.w.test.data <- exp(fdt$fc.w.test.data)/1000
+# fdt$Total.Arrivals  <- exp(fdt$Total.Arrivals)/1000
+# fdt$fc.w.test.data <- exp(fdt$fc.w.test.data)/1000
 fdt$Date <- fdt$Date %>% as.character() %>% as.numeric()
 
 ## we will plot 4 countries in order to have a clear picture
 
-cn <- c( "Australia",  "Austria", "Chile", "Lithuania")
+cn <- c( "Australia",  "Austria", "France", "Lithuania")
 points <- data.frame()
 
 par(mfrow=c(2,2))
@@ -1198,144 +1343,70 @@ Both the $y_{i1}$ and ${y_{i2}}$ are good options. Going forward up to time peri
 $$(y_{i1}, y_{i2}, ..., y_{iT- 2})$$. If there are strictly exogenous variables in our system $x_{it}$ that correlate with the endogenous variable and not with the residuals they should also be included in the weight matrix diagonals (for a detailed proof [see @dynamic.panel]):
 
 
-$$W_{i} = \left( \begin{pmatrix}
+$$W_{i} = \begin{pmatrix}
     [y_{i1}, x_{i1}, x_{i2}]       & 0 & \dots & 0 \\
     0       &  [y_{i1}, y_{i2} x_{i1}, x_{i2}, x_{i3}] & \dots & 0 \\
     0      & 0  & \dots & [y_{i1}, y_{i2}, ..., y_{iT-2}, x_{i1}, x_{i2}, x_{i3}, ..., x_{iT-1}]
-\end{pmatrix} \right) $$
+\end{pmatrix} $$
 
-Then the unbiased \textit{Arellano and Bond} estimator is given by:
+Then the consistent Arriano-Bond estimator is given by:
 
-
-
-
-To determine the "best" lags we will be using the cross-validation method (MAPE statistic). We will split the data to a training set and test set like in the previous section. We will also assume that the coefficient near the terror attacs is negative, GDP.per.capita - positive and hours worked - negative. 
+$$\widehat{\delta} =  \left[ (\Delta y_{t - 1})^{t} W (\widehat{V}_{W})^{-1} W^{t} \Delta y_{t - 1}\right]^{-1} x \left[ (\Delta y_{t - 1})^{t} W (\widehat{V}_{W})^{-1} W^{t} \Delta y_{t - 1}\right] $$
+$$ \widehat{V}_{W} = \sum_{i=1}^{n} W_{i}^{t} \Delta \epsilon_{i} \Delta \epsilon_{i}^{t}  W_{i}$$
 
 ```{r dynamic model, include=FALSE, echo=F}
 
-training.data$fc.fixed.effect <- NULL
-training.data$fc.w.test.data <- NULL
-training.data$fc.OLS <- NULL
-training.data$fc.random.effect <- NULL
-
-min.stat <- 8888
-
-for(j in c(0:1)){
-  
-  for(i in c(0:2)){
-    
-    for(h in c(0:2)){
-  
-      # model.dynamic <- suppressWarnings( pgmm(Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked,
-      #                 lag.form=list(1, j, i, h), gmm.inst = ~ Total.Arrivals, lag.gmm = list(c(2,99)),
-      #                 effect="individual",
-      #                 data=test.data, transformation = "ld"))
-      
-        model.dynamic <- suppressWarnings( pgmm(Total.Arrivals ~ Terror.attacks + GDP.per.capita,
-                       lag.form=list(1, j, i), gmm.inst = ~ Total.Arrivals, lag.gmm = list(c(2,99)),
+model.dynamic <- suppressWarnings( pgmm(Total.Arrivals ~ Terror.attacks + GDP.per.capita,
+                       lag.form=list(1, 0, 0), gmm.inst = ~Total.Arrivals + Terror.attacks + GDP.per.capita, 
+                       lag.gmm = list(c(2,99)),
                        effect="individual",
-                       data=test.data))
-      
-      # model.dynamic <- suppressWarnings( pgmm(Total.Arrivals ~ lag(Total.Arrivals, 0:1) +  lag(Terror.attacks, 0:j) + lag(GDP.per.capita, 0:i) +                                                       lag(Hours.worked, 0:h) | lag(Total.Arrivals, 2:99),
-      #                                          effect="individual",
-      #                                          data=test.data))    
-      
-      ## Creating fits
-      
-      fits <- ddply(pdata, ~Country, function(xframe){
-        
-        xframe <<- xframe
-        
-        xframe <- predict.pgmm.custom(model.dynamic, xframe, j, i, h)
-        
-        return(xframe)
-        
-      })
-      
-      # Taking the training set's data
-        
-        fits <- fits[fits$Date %in% paste(2012:2014), c("Total.Arrivals", "fc.pgmm")]
-        
-        stat <- MAPE(fits$Total.Arrivals, fits$fc.pgmm)
-        
-        ## Checking for economic logic
-        
-        sign <- model.dynamic$coefficients[grep("Terror", names(model.dynamic$coefficients))]
-        
-        if(length(which(sign>0))!=0) next
-        
-        sign <- model.dynamic$coefficients[grep("Hours.worked", names(model.dynamic$coefficients))]
-        
-        if(length(which(sign<0))!=0) next
-
-        sign <- model.dynamic$coefficients[grep("GDP.per.capita", names(model.dynamic$coefficients))]
-        
-        if(length(which(sign<0))!=0) next
-        
-        cat(stat, "\n")
-        if(stat < min.stat){
-          
-          min.stat   <- stat
-          best.model <- model.dynamic
-          
-        }
-      
-    }
-    
-  }
-
-}
-
-# model.dynamic <- plm::pgmm(Total.Arrivals ~ Terror.attacks + GDP.per.capita + Hours.worked,
-#                       lag.form=list(1, 0, 0, 1), gmm.inst = ~Total.Arrivals, lag.gmm = list(c(2,99)),
-#                       effect="individual",
-#                       data=test.data)
-
-
+                       data=pdata))
 ```
 ```{r, results='asis', echo=F, warning=F, fig.pos="H"}
   # texreg(model.train, caption = "Fixed effects model with training set", custom.coef.names = c("attacks", "log GDP", "log Hours"), digits = 3)
 
-tab <- xtable(summary(best.model)$coef, digits=c(3, 3, 3, 3, 3), caption = "Dynamic panel data model")
+tab <- xtable(summary(model.dynamic)$coef, digits=c(3, 3, 3, 3, 3), caption = "Dynamic panel data model")
 print(tab, type="latex", floating = T, only.contents = F, comment = F)
 ```
 
-After trying various laggs and taking into account the economic logic behind the model we get the results in table 7. Note that the variable regarding the hours worked is dropped due to insignificance. 
+After trying various laggs and taking into account the economic logic behind the model we get the results in table 7. Note that the variable regarding the hours worked is dropped due to insignificance. We can see that the number of arrivals in the previous year has a big effect to the current year's number of arrivals. The \textit{plm} package does not have a working function to forecast a dynamic panel model thus a code which enables us to do so is included in the \textbf{Additional R code} section.
 
-```{r visualizing the dynamic model, echo=F, fig.cap="Dynamic model's fits", fig.height=7, fig.width=8,  fig.pos="H"}
-#   
-# model.dynamic <- suppressWarnings( pgmm(Total.Arrivals ~ Terror.attacks + GDP.per.capita,
-#                        lag.form=list(1, 0, 0), gmm.inst = ~ Total.Arrivals, lag.gmm = list(c(2,99)),
-#                        effect="individual",
-#                        data=pdata))
-# 
-# pdata <- ddply(pdata, ~Country, function(xframe){
-#   
-#   xframe <<- xframe
-#   
-#   
-#   
-#   
-# })
-# 
-# ## we will plot 4 countries in order to have a clear picture
-# cn <- c( "Australia",  "Austria", "Chile", "Lithuania")
-# points <- data.frame()
-# 
-# par(mfrow=c(2,2))
-# for(cc in cn){
-#   
-#   tmp <- fdt[fdt$Country==cc, ]
-#   points <- tmp[, c("Total.Arrivals", "fc.fixed.effect", 'fc.random.effect')]
-#   
-# grid.frame(x=as.numeric(tmp$Date), y=points)
-#   matplot(x=as.numeric(tmp$Date), y=points, lwd=1, lty=1, cex=1.25, pch=20, xlab="Time", ylab="Arrivals, thousands", add = T, type="o",
-#         col=c('salmon1', "firebrick1", 'cornflowerblue'))
-#   legendary2(c("Original", "Fixed effect fit", "random effect fit"), col=c('salmon1', "firebrick1", 'cornflowerblue'))
-#   mtext(cc, col="blueviolet", line=2, cex=1.25, adj = 0)
-# }
+```{r obtaining the dynamic model fits, echo=F, fig.cap="Dynamic model's fits", fig.height=7, fig.width=8,  fig.pos="H"}
+
+pdata <- ddply(pdata, ~Country, function(xframe){
+  
+  xframe <<- xframe
+  
+  xframe$fc.dynamic <- predict.pgmm.custom(model.dynamic, xframe$Total.Arrivals, xframe[, c("Terror.attacks", "GDP.per.capita")])
+  
+  return(xframe)
+  
+})
+
 
 ```
+
+\subsection{Dynamic models' residuals}
+
+```{r residuals of dynamic models, echo=F, fig.cap="Residuals of models", fig.height=10, fig.width=7,  fig.pos="H"}
+  
+par(mfrow=c(3, 1))
+
+res.dynamic <- model.dynamic$residuals %>% unlist
+  
+grid.frame(x=seq(from=1, length.out = length(res.dynamic)), y=as.numeric(res.dynamic))
+matplot(x=seq(from=1, length.out = length(res.dynamic)), y=as.numeric(res.dynamic), lwd=1, lty=1, cex=1.25, pch=20, ylab="Residual value", xlab="Index", type="o", add=T, col=c('salmon1'))
+mtext("Dynamic model residuals", col="salmon1", line=1, cex=1.25, adj = 0)
+
+hist(res.dynamic, col = "cornsilk3", xlab = "Residuals of the dynamic model", main="Density of the residuals")
+
+qqnorm(res.fixed, ylab='Residuals', main = "Q - Q plot for dynamic model", col="cornflowerblue")
+grid()
+qqline(res.fixed)
+
+```
+As we can see in figure 17 the residuals resemble a simmilar pattern as in the case with static panel models. Altough the quantile to quantile plot shows "lighter" tails than in the previous cases. 
+
 
 \newpage
 

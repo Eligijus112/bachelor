@@ -685,6 +685,14 @@ get_dataset <- function(dataset, filter = NULL, start_time = NULL, end_time = NU
   df
 }
 
+get.custom.oecd <- function(url, rename){
+  
+  download.file(url, paste0(path, "OECD/" , rename, ".xls"), "internal", quiet = FALSE, mode = "wb",
+                cacheOK = TRUE,
+                extra = getOption("download.file.extra"))
+  
+}
+
 find.neighbours <- function(cn, path){
   
   createdir(paste0(path, "GeoCountries"))
@@ -936,74 +944,118 @@ MAPE <- function(y,yhat,percent=TRUE)
 
 #Predictin pgmm models
 
-predict.pgmm.custom <- function(model, X.frame, j, i, h){
+predict.pgmm.custom <- function(model, Y.var, X.frame){
   
-  coefs <- model$coefficients
-  var.names <- names(coefs)
+  coefs <- coefficients(model)
+  order <- (gsub(")", "", names(coefs)[1]) %>% strsplit(split=", "))[[1]][2] %>% as.numeric()
+  X.frame <- cbind(lag(Y.var, order), X.frame)
   
-  # Creating lags if needed
+  fit <- as.vector(coefs) %*% t(as.matrix(X.frame))
   
-  if(length(grep("lag", var.names))!=0){
-    
-    lagged <- var.names[grep("lag", var.names)]
-    
-    for(laag in lagged){
-      
-      # extracting variable name
-      
-      x <- substr(laag, 5, length(strsplit(laag, "")[[1]]))
-      x <- gsub("[(]", "", x)
-      x <- gsub("[)]", "", x)
-      
-      xx <- strsplit(x, ",")[[1]][1]
-      
-      # extracting number of lags
-      
-      ll <- strsplit(x, ",")[[1]][2] %>% trimws()
-      
-      if(length(grep("j", ll))!=0){
-        
-        ll <- 1:j
-        
+  return(as.numeric(fit))    
+}
+
+w <- function(x=NULL,out=F,commit=NULL,w=14,h=10,odir=F){
+  
+  createdir <- function(dir) {
+    if(file.exists(dir) ) {
+      if(!file.info(dir)$isdir)   {
+        dir.create(dir,recursive=TRUE)
+        cat("\n Created  directory ",dir,"\n")
       }
-      
-      if(length(grep("i", ll))!=0){
-        
-        ll <- 1:i
-        
-      }
-      
-      if(length(grep("h", ll))!=0){
-        
-        ll <- 1:h
-        
-      }
-      
-      # adding lags to X.frame
-      
-      for(l in ll){
-        
-        data.to.write <- lag(X.frame[, xx], as.numeric(l))
-        eval(parse(text=paste0("X.frame$`", laag,  "`<-", 'data.to.write')))
-        
-      }
+    }
+    else {
+      dir.create(dir,recursive=TRUE)
+      cat("\n Created  directory ",dir,"\n")
     }
   }
   
-  ## Calculating forecasts
+  # x menu ------------------------------------------------------------------
   
-  fit <- rep.int(0, dim(X.frame)[1])
-  for(cc in names(coefs)){
+  if(class(x)!="logical" & !is.null(x) & class(x)!="character") m <- 1
+  if(is.null(x)) m <- 2
+  if(!is.null(x)){if(class(x)=="logical"){m <- 3}} 
+  if(length(x)==1){if(x=="version"){m <- 4}}
+  if(class(x)!="logical" & !is.null(x) & class(x)!="character" & out==T) m <- 5
+  
+  
+  # if X is a dataset -------------------------------------------------------
+  
+  if(m==1){
+    createdir("temp")
+    name=paste("temp/temp ",Sys.time(),".csv",sep="")
+    name=gsub(":","-",name)
+    name=gsub(" ","___",name)
     
-    fit   <- fit + coefs[which(cc==names(coefs))] * X.frame[, cc]
+    write.csv(x,file=name,row.names=F,na="")
+    system(paste("open ",name,sep=''))
+  }
+  
+  # if is a plot -------------------------------------------------------
+  
+  if(m==2){
+    createdir("temp")
+    name=paste("temp/temp ",Sys.time(),".pdf",sep="")
+    name=gsub(":","-",name)
+    name=gsub(" ","___",name)
+    
+    dev.copy2pdf(file=name,width=w,height=h)
+    system(paste("open ",name,sep=''))
+  }
+  
+  # if is want share a plot -------------------------------------------------------
+  
+  if(m==3){
+    t <- Sys.time()
+    t <- gsub(":","-",t)
+    
+    name=paste("K:/GMID Research/SM-route/Graphs Gallery/",t,".pdf",sep="")
+    
+    dev.copy2pdf(file=name,width=w,height=h)
+    name <- shQuote(name,type="cmd")
+    system(paste("open",name))
+  }
+  
+  # versioning -------------------------------------------------------
+  
+  if(m==4){
+    
+    createdir("version")
+    
+    t <- Sys.time()
+    t <- gsub(":","-",t)
+    t <- gsub(" ","___",t)
+    
+    dir.create(paste("version/version ",t,sep=""))
+    
+    f <- dir()[grep(".R$",dir(),perl=TRUE)]
+    
+    file.copy(from = f,to = paste(paste("version/version ",t,sep=""),"/",f,sep=""))
+    
+    if(!is.null(commit)){
+      cat(commit,file=paste(paste("version/version ",t,sep=""),"/","log.txt",sep=""))
+    }
     
   }
   
-  eval(parse(text=paste0("X.frame$fc.pgmm <-", 'fit')))
   
-  return(X.frame)    
+  # if i want to share a plot -------------------------------------------------------
+  
+  if(m==5){
+    t <- Sys.time()
+    t <- gsub(":","-",t)
+    
+    name=paste("K:/GMID Research/SM-route/Graphs Gallery/",t,".Rdata",sep="")
+    lx <- x
+    save(lx,file = name)
+    
+  }
+  
+  
+  if(odir){
+    system(paste("open","temp"))
+  }
 }
-
 
 # summary of pgmm ---------------------------------------------------------
 
