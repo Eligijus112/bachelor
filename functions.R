@@ -1,6 +1,61 @@
 
 # Functions for data manipulation -----------------------------------------
 
+get.cols <- function(dt){
+  
+  dt <- dt[, c("Country", "Variable", "Year", "Value")]
+  dt <- rename(dt, c("Year" = "Date", "Variable" = "Indicator"))
+  dt[dt$Country=="Korea, Rep.", "Country"] <- "South Korea"  
+  dt[dt$Country=="Korea", "Country"] <- "South Korea" 
+  
+  return(dt)
+  
+}
+
+format.input <- function(dt, decoder){
+  
+  dt <- rename(dt, c("LOCATION" = "ï..LOCATION"))
+  dt <- dt[, c("ï..LOCATION", "TIME", "INDICATOR",  "Value")]
+  dt <- rename(dt, c("ï..LOCATION" = "Country", "INDICATOR" = "Indicator", "TIME" = "Date"))
+  
+  dt <- ddply(dt, ~Country, function(xframe){
+    
+    xframe <<- xframe
+    real.name <-  decoder[decoder$CountryCode==xframe$Country[1], "CountryName"]
+    if(length(real.name)==0) real.name <- xframe$Country[1]
+    xframe$Country <- real.name
+    return(xframe)
+    
+  })
+  
+  dt[dt$Country=="Korea, Rep.", "Country"] <- "South Korea"  
+  dt[dt$Country=="Korea", "Country"] <- "South Korea" 
+  
+  return(dt)
+}
+
+format.hours <- function(dt, decoder){
+  
+  dt <- dt[dt$EMPSTAT=="TE", c("COUNTRY", "obsTime", 'obsValue')]
+  dt$Indicator <- "Hours.worked"
+  dt <- rename(dt, c("COUNTRY" = "Country", "obsTime" = "Date", "obsValue" = "Value"))
+  
+  dt <- ddply(dt, ~Country, function(xframe){
+    
+    xframe <<- xframe
+    real.name <-  decoder[decoder$CountryCode==xframe$Country[1], "CountryName"]
+    if(length(real.name)==0) real.name <- xframe$Country[1]
+    xframe$Country <- real.name
+    return(xframe)
+    
+  })
+  
+  dt[dt$Country=="Korea, Rep.", "Country"] <- "South Korea"  
+  return(dt)
+  
+}
+
+
 createdir <- function (dir) 
 {
   if (file.exists(dir)) {
@@ -970,7 +1025,6 @@ w <- function(x=NULL,out=F,commit=NULL,w=14,h=10,odir=F){
     }
   }
   
-  # x menu ------------------------------------------------------------------
   
   if(class(x)!="logical" & !is.null(x) & class(x)!="character") m <- 1
   if(is.null(x)) m <- 2
@@ -978,8 +1032,6 @@ w <- function(x=NULL,out=F,commit=NULL,w=14,h=10,odir=F){
   if(length(x)==1){if(x=="version"){m <- 4}}
   if(class(x)!="logical" & !is.null(x) & class(x)!="character" & out==T) m <- 5
   
-  
-  # if X is a dataset -------------------------------------------------------
   
   if(m==1){
     createdir("temp")
@@ -991,7 +1043,6 @@ w <- function(x=NULL,out=F,commit=NULL,w=14,h=10,odir=F){
     system(paste("open ",name,sep=''))
   }
   
-  # if is a plot -------------------------------------------------------
   
   if(m==2){
     createdir("temp")
@@ -1003,7 +1054,6 @@ w <- function(x=NULL,out=F,commit=NULL,w=14,h=10,odir=F){
     system(paste("open ",name,sep=''))
   }
   
-  # if is want share a plot -------------------------------------------------------
   
   if(m==3){
     t <- Sys.time()
@@ -1016,7 +1066,6 @@ w <- function(x=NULL,out=F,commit=NULL,w=14,h=10,odir=F){
     system(paste("open",name))
   }
   
-  # versioning -------------------------------------------------------
   
   if(m==4){
     
@@ -1038,8 +1087,6 @@ w <- function(x=NULL,out=F,commit=NULL,w=14,h=10,odir=F){
     
   }
   
-  
-  # if i want to share a plot -------------------------------------------------------
   
   if(m==5){
     t <- Sys.time()
