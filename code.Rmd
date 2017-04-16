@@ -76,7 +76,7 @@ library(tseries)
 \vspace{2\baselineskip}
 \begin{center}\textbf{Santrauka}\end{center}
 
-Šio darbo tikslas yra sudaryti turizmo modelį Vakarų Europoms šalims. Naudojantis pasaulinio banko (World Bank), OECD ir Merilando Universiteto duomenų baze (the Department of Homeland Security Center of Excellence led by the Maryland University) duomenimis nustatėme, kad turistų skaičius tiesiškai priklauso nuo teroristinių įvykių skaičiaus, kaimyninių valstybių metinių darbo valandų skaičiaus ir nuo BVP (bendrasis vidaus produktas) vienam asmeniui. Tiesinės priklausomybės įrodymui naudojome panelinį modelį.
+Šio darbo tikslas yra sudaryti turizmo modelį Vakarų Europoms šalims. Naudojantis pasaulinio banko (World Bank), OECD ir Merilando Universiteto duomenų baze (the Department of Homeland Security Center of Excellence led by the Maryland University) duomenimis nustatėme, kad turistų skaičius tiesiškai nepriklauso nuo teroristinių įvykių skaičiaus, kaimyninių valstybių metinių darbo valandų skaičiaus ir nuo BVP (bendrasis vidaus produktas) vienam asmeniui. Didžiausias rastas faktorius, darantis įtaką turizmo srautui, yra šalių, iš kurių atvyksta turistai, ekonominė situacija. Tiesinės priklausomybės įrodymui (ir paneigimui) naudojome panelinius ir paprastus regresijos modelius.
 
 \vspace{\baselineskip}
 \noindent\textbf{Raktiniai žodžiai :}
@@ -88,7 +88,7 @@ library(tseries)
 \begin{small}
 \vspace{2\baselineskip}
 \begin{center}\textbf{Abstract}\end{center}
-The aim of this paper is to construct a model to help explain the number of tourist arrivals in Western European countries. By using data from the World Bank, OECD and the Department of Homeland Security Center of Excellence led by the Maryland University's database we have found that the number of tourist arrivals to a certain OECD country is linearly dependant from GDP per capita, terrorist acts and the number of annual hours worked in neighbouring countries. To proove the linear dependance we used a panel model.
+The aim of this paper is to construct a model to help explain the number of tourist arrivals in Western European countries. By using data from the World Bank, OECD and the Department of Homeland Security Center of Excellence led by the Maryland University's database we have found that the number of tourist arrivals to a certain western country is linearly not dependant from GDP per capita, terrorist acts and the number of annual hours worked in neighbouring countries. The biggest factor to tourist arrivals was the economic state of the countries from which the tourist come from. To proove (and disproove) the linear dependance we used a panel and a simple regression model.
 
 \vspace{\baselineskip}
 \noindent\textbf{Key words :}
@@ -240,10 +240,6 @@ hours.m <- hours[, c("Country", "Date", "Value")] %>% rename(c("Value"="hours.wo
 master.data <- merge(master.data, hours.m)
 master.data <- master.data[complete.cases(master.data), ]
 
-countries <- c("France", "United Kingdom", "United States", "Canada", "Germany", "Spain", "Portugal", "Netherlands", "Austria", "Italy", "Belgium")
-
-master.data <- master.data[master.data$Country %in% countries, ]
-
 master.data <- ddply(master.data, ~Country, function(xframe){
   
   xframe <<- xframe
@@ -256,6 +252,10 @@ master.data <- ddply(master.data, ~Country, function(xframe){
   return(xframe)
   
 })
+
+countries <- c("France", "United Kingdom", "United States", "Canada", "Germany", "Spain", "Portugal", "Netherlands", "Austria", "Italy", "Belgium")
+
+master.data <- master.data[master.data$Country %in% countries, ]
 
 pdata <-  plm.data(master.data, index = c("Country", "Date")) 
 log.vars <- c("Total.Arrivals", "gdp", "hours.worked")
@@ -292,19 +292,17 @@ $\bullet$ In 2015 there were 1186 million tourists worldwide and this number is 
 
 $\bullet$ In 2015 the total receipts by tourists was about 1.26 billion US dollars.
 
-From these figures it is clear to see that every country can benefit from an increase in tourism flows. Tourism continues to demonstrate its key role in generating economic activity, employment and export revenues in the OECD area, where it directly contributes, on average, 4.1 \% of GDP, 5.9 \% of employment and 21.3 \% of service exports. Tourism offers strong potential to support job rich growth and at around 80 percent, tourism exports also generate higher than average domestic value added. International tourist arrivals surpassed 1.1 billion in 2014 (World Tourism Organization), following a resurgence in arrivals to OECD countries (6.4 \%), which increased at a faster rate than the global average (4.2 \%) (as of 2016). A large part of countries that are regarded as the "Western World" are members of the OECD organisation. In this paper we will be hold that the western countries are France, United Kingdom, USA, Canada, Germany, Spain, Portugal, Netherlands, Austria, Italy and Belgium.
+From these figures it is clear to see that every country can benefit from an increase in tourism flows. Tourism continues to demonstrate its key role in generating economic activity, employment and export revenues in the OECD area, where it directly contributes, on average, 4.1 \% of GDP, 5.9 \% of employment and 21.3 \% of service exports. Tourism offers strong potential to support job rich growth and at around 80 percent, tourism exports also generate higher than average domestic value added. International tourist arrivals surpassed 1.1 billion in 2014 (World Tourism Organization), following a resurgence in arrivals to OECD countries (6.4 \%), which increased at a faster rate than the global average (4.2 \%) (as of 2016). A large part of countries that are regarded as the "Western World" are members of the OECD organisation. In this paper we will hold that the western countries are France, United Kingdom, USA, Canada, Germany, Spain, Portugal, Netherlands, Austria, Italy and Belgium.
 
 In this paper we want to find which economic or social variables significantely influence the tourism flows to help governments in deciding which policies to adapt in order to grow the tourism sector.
-
-
 
 \newpage
 
 \section{Countries}
 
-The countries which will be analyzed are all members of the OECD (\textbf{Organisation for Economic Co-operation and Development}) [see @OECD]. 
+The countries which will be analyzed are all members of the OECD (\textbf{Organisation for Economic Co-operation and Development}) [see @OECD].  
 
-```{r map of OECD countries, echo=F, fig.width=8, fig.height=8, fig.cap= "Map of the OECD countries", echo=F, warning=F, include=T}
+```{r map of OECD countries, echo=F, fig.width=8, fig.height=8, fig.cap= "Map of the countries in this analysis", echo=F, warning=F, include=T}
 
 OECD.cn <- data.frame(country = unique(master.data$Country), 
                       OECD = rep.int("Western countries", 
@@ -1204,6 +1202,65 @@ qqline(res)
 
 ```
 
+As we can see from figure 11 we can conclude that the residuals from the structure model graphically look the most normal out of all the models in this analysis so far.
+
+```{r cooks distance, echo=F, fig.cap="Distribution of the residuals", fig.height=7, fig.width=7,  fig.pos="h"}
+
+par(mfrow=c(2, 1))  
+plot(model.ols, 4, col="salmon1", lwd=2)
+abline(h=6/nrow(sdt.sub), col="dodgerblue1", lwd=2)
+legendary2(col="dodgerblue1", "4/number of obs.")
+grid()
+
+c.dist <- cooks.distance(model.ols)
+r <- stdres(model.ols)
+plot(r, type="l", xlab="number of obs.", ylab="Residaul", main="Plot of standartized residuals", col="salmon1")
+abline(h=3*sd(r), col="dodgerblue1", lwd=2)
+abline(h=-3*sd(r), col="dodgerblue1", lwd=2)
+legendary2(col="dodgerblue1", "3 sigmas")
+grid()
+
+```
+
+We can clearly see from figure 12 that there are some observations which cook's distance is much larger than the generally accepted rule of 4 divided by the number of observations. We will eliminate the points from our data set who's residual is larger in absolute value than 2.5.
+
+
+```{r model without influantial points, results='asis', echo=F, warning=F}
+  
+sdt.sub$res <- abs(r)
+sdt.sub <- sdt.sub[sdt.sub$res<2.5, ]
+model.ols <-  lm(Arrivals ~  gdp.a +  hours , data=sdt.sub)  
+tab <- xtable(summary(model.ols)$coef, digits=c(3, 3, 3, 3, 3), caption = "OLS model without the influential points")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
+
+```
+
+Eliminating the influential points and re-regressed the model we got that the variable hours is not significant after all. Also we can see that from figure 13 that the residuals are visually normal. The Shapiro-Wilk test's statistic is 0.039 which with alpha level of 0.01 would imply normality.
+
+```{r distribution of residuals of final model 2, echo=F, fig.cap="Distribution of the residuals without influential points", fig.height=7, fig.width=7,  fig.pos="h"}
+
+model.ols <-  lm(Arrivals ~  gdp.a, data=sdt.sub)    
+par(mfrow=c(2,1))
+
+res <- residuals(model.ols)
+
+hist(res, col = "cornsilk3", xlab = "Residuals of the structure model", main="Density of the residuals")
+
+qqnorm(res, ylab='Residuals', main = "Q - Q plot for structure model", col="cornflowerblue")
+grid()
+qqline(res)
+
+```
+
+```{r, results='asis', echo=F, warning=F}
+
+model.ols <-  lm(Arrivals ~  gdp.a, data=sdt.sub)
+tab <- xtable(summary(model.ols)$coef, digits=c(3, 3, 3, 3, 3), caption = "Final OLS model without influential points")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
+
+```
+
+The final structure model is in table 12.
 
 \newpage
 
@@ -1286,7 +1343,7 @@ The main idea of this test is that if $Var(\widehat{\beta_{FE}})$ is smaller tha
 
 \section{Conclusion}
 
-After testing various models a conclusion was met that the fixed effects panel data model best suits the data regarding the arrivals to the OECD countries. According to the model (the model is in table 2):
+After testing various models we can make several conclusions regarding tourism models for the countries in this analysis:
 
 $\bullet$ Every terrorist attack shrinks the total number of arrivals on average by 0.5 percent in a given year.
 
