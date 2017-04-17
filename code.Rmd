@@ -84,7 +84,7 @@ library(tseries)
 \end{small}
 \vspace{\baselineskip}
 \thispagestyle{empty}
-\begin{center}{\large\textbf{Tourism model in Western countries}}\end{center}
+\begin{center}{\large\textbf{Tourism model in western countries}}\end{center}
 \begin{small}
 \vspace{2\baselineskip}
 \begin{center}\textbf{Abstract}\end{center}
@@ -139,61 +139,6 @@ dt.oecd <- get_dataset("ANHRS", path="data/")
 decode  <- get_decoder("data/")  
 write.csv(dt.oecd, file="input/hours.csv", na="", row.names=F)
 
-# OECD data on taxes
-
-# dt.tax <- read.csv("input/tax.csv")
-# dt.tax <- rename(dt.tax, c("ï..LOCATION" = "Country"))
-# dt.tax <- dt.tax[dt.tax$MEASURE %in% c("PC_GDP"), ]
-# 
-# dt.tax <- ddply(dt.tax, ~Country + TIME, function(xframe){
-#   
-#   xframe <<- xframe
-#     
-#   real.name <-  decode[decode$CODE==as.character(xframe$Country[1]), "Country"]
-#   if(length(real.name)==0) real.name <- xframe$Country[1]
-#   xframe$Country <- real.name
-#   return(xframe[nrow(xframe), ])
-#   
-# })
-# 
-# # dt.tax <- ddply(dt.tax, ~Country, function(xframe){
-# #   
-# #   xframe <<- xframe
-# #   
-# #   if(length(setdiff(years.to.survey, xframe$TIME))!=0){
-# #     
-# #     to.add <- matrix(nrow=length(setdiff(years.to.survey, xframe$TIME)), ncol=dim(xframe)[2]) %>% as.data.frame()
-# #     colnames(to.add) <- colnames(xframe) 
-# #     to.add$sum <- NA
-# #     to.add$TIME <- setdiff(years.to.survey, xframe$TIME)
-# #     to.add$Country <- xframe$Country[1]
-# #     xframe <- rbind(xframe, to.add)
-# #   }
-# #   
-# #   xframe <- arrange(xframe, TIME)
-# #    
-# #   return(xframe)
-# #   
-# # })
-# 
-# dt.tax <- dt.tax[, c("Country", "TIME", "Value")]
-# dt.tax <- rename(dt.tax, c("TIME"= "Date", "Value"="Tax"))
-# dt.tax[dt.tax$Country=="KOR", "Country"] <- "South Korea"
-# Decoding country names
-
-# dt.oecd <- ddply(dt.oecd, ~COUNTRY + obsTime + EMPSTAT, function(xframe){
-#   
-#   xframe <<- xframe
-#   real.name <-  decode[decode$CODE==xframe$COUNTRY[1], "Country"]
-#   if(length(real.name)==0) real.name <- xframe$COUNTRY[1]
-#   xframe$COUNTRY <- real.name
-#   return(xframe)
-#   
-# })
-# 
-# dt.oecd <- dt.oecd[dt.oecd$EMPSTAT=="TE", ]
-# dt.oecd[dt.oecd$COUNTRY=="KOR", "COUNTRY"] <- "South Korea"
-# dt.oecd[dt.oecd$COUNTRY=="Slovak Republic", "COUNTRY"] <- "Slovakia"
 ```
 
 ```{r data input, include=FALSE, echo=F}
@@ -292,9 +237,9 @@ $\bullet$ In 2015 there were 1186 million tourists worldwide and this number is 
 
 $\bullet$ In 2015 the total receipts by tourists was about 1.26 billion US dollars.
 
-From these figures it is clear to see that every country can benefit from an increase in tourism flows. Tourism continues to demonstrate its key role in generating economic activity, employment and export revenues in the OECD area, where it directly contributes, on average, 4.1 \% of GDP, 5.9 \% of employment and 21.3 \% of service exports. Tourism offers strong potential to support job rich growth and at around 80 percent, tourism exports also generate higher than average domestic value added. International tourist arrivals surpassed 1.1 billion in 2014 (World Tourism Organization), following a resurgence in arrivals to OECD countries (6.4 \%), which increased at a faster rate than the global average (4.2 \%) (as of 2016). A large part of countries that are regarded as the "Western World" are members of the OECD organisation. In this paper we will hold that the western countries are France, United Kingdom, USA, Canada, Germany, Spain, Portugal, Netherlands, Austria, Italy and Belgium.
+From these figures it is clear to see that every country can benefit from an increase in tourism flows. Tourism continues to demonstrate its key role in generating economic activity, employment and export revenues in the OECD area, where it directly contributes, on average, 4.1 \% of GDP, 5.9 \% of employment and 21.3 \% of service exports. Tourism offers strong potential to support job rich growth and at around 80 percent, tourism exports also generate higher than average domestic value added. International tourist arrivals surpassed 1.1 billion in 2014 (World Tourism Organization), following a resurgence in arrivals to OECD countries (6.4 \%), which increased at a faster rate than the global average (4.2 \%) (as of 2016). A large part of countries that are regarded as the "Western World" are members of the OECD organization. In this paper we will hold that the western countries are France, United Kingdom, USA, Canada, Germany, Spain, Portugal, Netherlands, Austria, Italy and Belgium.
 
-In this paper we want to find which economic or social variables significantely influence the tourism flows to help governments in deciding which policies to adapt in order to grow the tourism sector.
+In this paper we want to find which economic or social variables significantly influence the tourism flows to help governments in deciding which policies to adapt in order to grow the tourism sector.
 
 \newpage
 
@@ -320,7 +265,7 @@ mapCountryData(malMap, nameColumnToPlot="OECD", catMethod = "categorical",
 
 \subsection{Total number of arrivals}
 
-To have a better picture of the tourist flows to the OECD countries we can visualize the data.
+To have a better picture of the tourist flows to the countries in this analysis we can visualize the data.
 
 ```{r arrivals visualization, echo=F, fig.cap="Total number of tourist arrivals", fig.height=10, fig.width=11, fig.pos="H"}
 
@@ -494,7 +439,7 @@ As we can see from figure 6 the overal downwards trend of the working annaul wor
 
 \subsection{Panel data structure}
 
-Panel data provides information on individual behaviour, both across individuals and over time - the data has cross-sectional and time-series dimensions. Panel data includes N individuals over T regular time periods. We can denote a panel data model simmilary like a typical bivariate reggression model [see @econometric.methods, pp. 390]:
+Panel data provides information on individual behaviour, both across individuals and over time - the data has cross-sectional and time-series dimensions. Panel data includes N individuals over T regular time periods. We can denote a panel data model similarly like a typical bivariate reggression model [see @econometric.methods, pp. 390]:
 
 \[
 \tag{1}
@@ -581,7 +526,7 @@ Hours <- as.data.frame(split(pdata$hours.worked, pdata$Country))
 purtest(Hours, pmax = 4, exo = "intercept", test = "madwu")
 
 Attacks <- as.data.frame(split(pdata$Terror.attacks, pdata$Country))
-purtest(Attacks, pmax = 4, exo = "intercept", test = "hadri")
+purtest(Attacks, pmax = 4, exo = "intercept", test = "madwu")
 
 Tax <- as.data.frame(split(pdata$tax, pdata$Country))
 purtest(Tax, pmax = 4, exo = "intercept", test = "madwu")
@@ -628,7 +573,7 @@ If $\alpha_{i}$ does correlate with $X_{it}$ then the panel model can be reffere
 
 \subsubsection{Model assumptions}
 
-Let as assume that we have n individuals and T observations for each individual. The random effects model has the following structure:
+Let as assume that we have n individuals and T observations for each individual. The fixed effects model has the following structure:
 
 $$y_{it} = X_{it} \beta + \epsilon_{it} $$
 $$\epsilon_{it} = \alpha_{i} + \eta_{it} $$
@@ -822,13 +767,13 @@ accuracy.table <- apply(accuracy.table, c(1, 2), function(x) {
   return(x)
   })
 
-
-kable(accuracy.table[c(1,3), ], format = "latex", row.names = T, caption = "Table for accuracy")
+tab <- xtable(accuracy.table[c(1,3), ], digits=c(3, 3, 3), caption = "Accuracy statistics results")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
 ```
 
 \end{center}
 
-As we can see from table 5 and the statistics for accuracy table the fixed effects models' predictions are closer to the original values. 
+As we can see from table 5 and the statistics for accuracy table the fixed effects models' predictions are closer to the original values. Note that we have dropped the MAPE statistic because we are measuring percentage changes and the statistic would give misleading results.
 
 \newpage
 
@@ -975,7 +920,7 @@ tab <- xtable(summary(model.dynamic)$coef, digits=c(3, 3, 3, 3, 3), caption = "D
 print(tab, type="latex", floating = T, only.contents = F, comment = F)
 ```
 
-After trying various laggs and taking into account the economic logic behind the model we get the results in table 7. We see that we get a very similar result as in the static case.
+After trying various laggs and taking into account the economic logic behind the model we get the results in table 8. We see that we get a very similar result as in the static case.
 
 \newpage
 
@@ -1033,7 +978,7 @@ We have data spaning from 2008 to 2014 that contains information regarding touri
 kable(struct[struct$Country=="United Kingdom" & struct$Date=="2014", ], format = "latex", row.names = F)
 ```
 
-We will save the p values and the coefficients near the explanatory variables and analyze the means and the distributions of them. 
+We will save the p values and the coefficients near the explanatory variables and analyze the medians and the distributions of them. 
 
 ```{r structure models, include=FALSE, echo=F}
 
@@ -1098,7 +1043,7 @@ In this section we will be creating a data frames Y and X, where:
 
 $Y_{ikt}$ - the total number of arrivals from country k to country i at time period t.
 
-$X_{itk}$ - both the domestic and abroad economy's GDP per capita, domestic terror attacks.
+$X_{itk}$ - both the domestic and abroad economy's GDP per capita, domestic terror attacks, domestic taxes on goods and services.
 
 We will be estimating the $\beta$ in:
 
@@ -1119,7 +1064,7 @@ The structure of Y is:
          y_{1, k, 2014}
   \end{bmatrix} \]
   
-The X is a matrix of 5 collumns (intercept collumn and the economic variables) and has the same number of rows as Y.
+The X is a matrix of 6 collumns (intercept collumn and the economic variables) and has the same number of rows as Y.
  
 ```{r structured panel data, echo=F, include=FALSE}
 
@@ -1128,6 +1073,7 @@ sdt.sub <- ddply(sdt.sub, ~Country + Origin, function(xframe){
   
   xframe <<- xframe
   if(dim(xframe)[1] >= 6){
+    
     ## Adding variable for domestic economy
     
     xframe <- merge(xframe, gdp) %>% rename(c("value" = "gdp.d"))
@@ -1148,12 +1094,18 @@ sdt.sub <- ddply(sdt.sub, ~Country + Origin, function(xframe){
     ter <- terror %>% filter(Country==xframe$Country[1], Date %in% 2008:2014)
     xframe$terror <- ter[, "Terror.attacks"]
     
+    ## Adding taxes
+    
+    taxes <- tax %>% filter(Country==xframe$Country[1], Date %in% 2008:2014) %>% rename(c("Value" = "taxes"))
+    xframe$taxes <- taxes[, "taxes"]
+    
     xframe$hours <- c(NA, diff(log(xframe$hours)))
     xframe$gdp.d <- c(NA, diff(log(xframe$gdp.d)))
     xframe$gdp.a <- c(NA, diff(log(xframe$gdp.a)))
     xframe$Arrivals <- c(NA, diff(log(xframe$Arrivals))) 
     xframe$terror <- c(NA, diff(xframe$terror)) 
- 
+    xframe$taxes  <- c(NA, diff(xframe$taxes))
+    
   }
   
     return(xframe)
@@ -1162,7 +1114,7 @@ sdt.sub <- ddply(sdt.sub, ~Country + Origin, function(xframe){
 sdt.sub$Origin <- NULL
 sdt.sub <- sdt.sub[complete.cases(sdt.sub), ]
 
-model.ols <-  lm(Arrivals ~  gdp.a + gdp.d + terror + hours, data=sdt.sub)
+model.ols <-  lm(Arrivals ~  gdp.a + gdp.d + terror + hours + taxes, data=sdt.sub)
 
 ```
 
@@ -1262,6 +1214,23 @@ print(tab, type="latex", floating = T, only.contents = F, comment = F)
 
 The final structure model is in table 12.
 
+
+\newpage
+
+\section{Conclusion}
+
+After testing various models we can make several conclusions regarding tourism models for the countries in this analysis:
+
+$\bullet$ Random effects, fixed effects, dynamic panel models and structure models showed that terror attacks did not have an influential impact to overall change to tourist arrivals.
+
+$\bullet$ Increasing GDP per capita in a given country does not influence tourist arrivals to that country.
+
+$\bullet$ Percentage change of taxes on goods and services in country i does not influence the rate of change in tourist arrivals.
+
+$\bullet$ The most significant variable regarding the percentage change in tourist arrivals to country i is the percentage change in GDP per capita in abroad countries from whom the tourists come to the country i.
+
+$\bullet$ According to our model, every country is better off in the sense of positive tourist arrivals change when the economies are growing.
+
 \newpage
 
 \section{Tests}
@@ -1339,17 +1308,6 @@ $$H \overset{asy}{\sim} \chi^2$$
 
 The main idea of this test is that if $Var(\widehat{\beta_{FE}})$ is smaller than  $Var(\widehat{\beta_{RE}})$ it means that the H statistic will be "large" and the null hypothesis will be rejected. This in turn means that $\widehat{\beta_{RE}}$ is no efficient because there exists another statistic with a smaller variance.
 
-\newpage
-
-\section{Conclusion}
-
-After testing various models we can make several conclusions regarding tourism models for the countries in this analysis:
-
-$\bullet$ Every terrorist attack shrinks the total number of arrivals on average by 0.5 percent in a given year.
-
-$\bullet$ Increasing the total GDP per capita of a given country increases the tourist flows by 0.493 percent.
-
-$\bullet$ A decrease of a 1 percent of total average working hours of neighbouring countries would increase the tourism flow by 0.8 percent.
 
 \newpage
 
