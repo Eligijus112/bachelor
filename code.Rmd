@@ -46,6 +46,7 @@ source('functions.R')
 library(car)
 library(tseries)
 library(RefManageR)
+library(forecast)
 ```
 
 \vskip 20pt
@@ -72,7 +73,7 @@ library(RefManageR)
 \centerline {\bf \large FACULTY OF MATHEMATICS AND INFORMATICS}
 \centerline {\bf DEPARTMENT OF MATHEMATICAL ANALYSIS}
 \vskip 120pt
-\large Scientific supervisor Vaidotas Zemlys - Balevičius, PhD \underline{\hskip 95pt}
+\large Scientific supervisor Vaidotas Zemlys-Balevičius, PhD \underline{\hskip 95pt}
 \vskip 150pt
 \end{titlepage}
 
@@ -82,7 +83,7 @@ library(RefManageR)
 \vspace{2\baselineskip}
 \begin{center}\textbf{Santrauka}\end{center}
 
-Šio darbo tikslas yra sudaryti turizmo modelį Vakarų Europos šalims bei Amerikai ir Kanadai. Naudojantis viešais pasaulinio banko (World Bank), OECD ir Merilando Universiteto duomenų bazės (the Department of Homeland Security Center of Excellence led by the Maryland University) duomenimis bandėme paaiškinti kasmetinius atvykusių turistų srautų procentinius pokyčius naudodamiesi procentiniais BVP vienam asmeniniui pokyčiais, teroro aktų skaičiaus pokyčiais, mokesčių paslaugoms pokyčiais, kasmetinių dirbamų valandų vidurkių pokyčiais, investicijų į infrastruktūrą pokyčiais bei pačių turistų srautų ankstinių pokyčiais. Ryšio nustatymui naudojome paprastą tiesinį, fiksuotų efektų, atsitiktinių efektų bei dinaminius panelinius modelius. Tokio tipo modelių pasirinkimą lėmė erdvinė blokuotų originalių duomenų struktūra. Išbandę įvairius kintamųjų ankstinius, modelių tipus, pritaikę pažingsninį kintamųjų išmetimo (išmetant mažiausiai reikšmingą) metodą gavome, jog vienintelis kintamasis, darantis reikšmingą įtaką turistų srautų pokyčiams buvo metinis vidutinis pradirbtų valandų skaičiaus pokytis. Pašalinę išskirtis gavome tikslesnius rezultatus: reikšmingą įtaką turi metinis vidutinis pradirbtų valandų skaičiaus pokytis, teroristinių įvykių skaičiaus pokytis, mokesčių paslaugų sektoriui pokytis (skaičiuojamas procentu nuo BVP) bei atvykusių turistų skaičiaus procentinio pokyčio ankstinys. Pasinaudoję visa išskaidymo informacija, kurią suteikia OECD duomenų bazė ir pasinaudoję tiesiniais modeliais gavome, jog lyginant užsienio ir vietinę ekonomikas, reikšmingą įtaką turistų skaičiaus pokyčiams turi šalių, iš kurių atvyksta turistai, BVP vienam asmeniui pokyčiai. BVP vienam asmeniui pokyčiai šalyje, į kurią atvyksta turistai, nėra reikšmingi norint paaiškinti turizmo srautus. 
+Šio darbo tikslas yra sudaryti turizmo modelį Vakarų Europos šalims bei Amerikai ir Kanadai. Naudojantis viešais pasaulinio banko (World Bank), OECD ir Merilando Universiteto duomenų bazės (the Department of Homeland Security Center of Excellence led by the Maryland University) duomenimis bandėme paaiškinti kasmetinius atvykusių turistų srautų procentinius pokyčius naudodamiesi procentiniais BVP vienam asmeniniui pokyčiais, teroro aktų skaičiaus pokyčiais, mokesčių paslaugoms pokyčiais, kasmetinių dirbamų valandų vidurkių pokyčiais, investicijų į infrastruktūrą pokyčiais bei pačių turistų srautų ankstinių pokyčiais. Ryšio nustatymui naudojome paprastą tiesinį, fiksuotų efektų, atsitiktinių efektų bei dinaminius panelinius modelius. Tokio tipo modelių pasirinkimą lėmė erdvinė blokuotų originalių duomenų struktūra. Išbandę įvairius kintamųjų ankstinius, modelių tipus, pritaikę pažingsninį kintamųjų išmetimo (išmetant mažiausiai reikšmingą) metodą gavome, jog vienintelis kintamasis, darantis reikšmingą įtaką turistų srautų pokyčiams buvo metinis vidutinis pradirbtų valandų skaičiaus pokytis. Pašalinę išskirtis bei naudoję modelius, kurie pašalina liekanų autokoreliacijos įtaką koeficientams, gavome tikslesnius rezultatus: reikšmingą įtaką turi metinis vidutinis pradirbtų valandų skaičiaus pokytis, teroristinių įvykių skaičiaus pokytis, mokesčių paslaugų sektoriui pokytis (skaičiuojamas procentu nuo BVP) bei atvykusių turistų skaičiaus procentinio pokyčio ankstinys. Pasinaudoję visa išskaidymo informacija, kurią suteikia OECD duomenų bazė ir pasinaudoję tiesiniais modeliais gavome, jog lyginant užsienio ir vietinę ekonomikas, reikšmingą įtaką turistų skaičiaus pokyčiams turi šalių, iš kurių atvyksta turistai, BVP vienam asmeniui pokyčiai. BVP vienam asmeniui pokyčiai šalyje, į kurią atvyksta turistai, nėra reikšmingi norint paaiškinti turizmo srautus. 
 
 \vspace{\baselineskip}
 \noindent\textbf{Raktiniai žodžiai :}
@@ -97,7 +98,7 @@ library(RefManageR)
 
 \vspace{2\baselineskip}
 \begin{center}\textbf{Abstract}\end{center}
-The aim of this paper is to construct a model to help explain the number of tourist arrivals in Western European countries and USA and Canada. By using public data from the World Bank, OECD and the Department of Homeland Security Center of Excellence led by the Maryland University's database we tried to explain the differences of tourist arrivals to a given country by using changes in GDP per capita, differences in terror attacks, differences in taxes on good and services, changes in investments to infrastructure, changes in average annual hours worked and the lags of changes of tourist arrivals. To identify the relationship we used linear, fixed-effects, random effects and dynamic panel models. We selected these types of models because of the cross-sectional structure of the data. After trying various lags of variables, different types of models and the step-wise elimination of variables algorithm we have concluded that the only significant variable to the changes in tourist flows is the changes in annual hours worked. After removing the outliers more precise results were gotten: changes in annual hours worked, changes in terror attacks, changes in taxes on goods and services and the lag of percentage change in tourist flows all got a significant influence to the changes in tourism flows. After using the information provided by the OECD database regarding the structure (limited) of tourism flows we have found that the only significant variable to the changes of tourism flows is the changes in GDP per capita of the countries from which the tourist arrive. GDP per capita in the country to which the tourist arrive and all of the other egzogenous variables mentioned above do not seem to have a significant impact to the changes to tourist arrivals.
+The aim of this paper is to construct a model to help explain the number of tourist arrivals in Western European countries and USA and Canada. By using public data from the World Bank, OECD and the Department of Homeland Security Center of Excellence led by the Maryland University's database we tried to explain the differences of tourist arrivals to a given country by using changes in GDP per capita, differences in terror attacks, differences in taxes on good and services, changes in investments to infrastructure, changes in average annual hours worked and the lags of changes of tourist arrivals. To identify the relationship we used linear, fixed-effects, random effects and dynamic panel models. We selected these types of models because of the cross-sectional structure of the data. After trying various lags of variables, different types of models and the step-wise elimination of variables algorithm we have concluded that the only significant variable to the changes in tourist flows is the changes in annual hours worked. After removing the outliers and using models who take into account the autocorrelation in the residuals more precise results were gotten: changes in annual hours worked, changes in terror attacks, changes in taxes on goods and services and the lag of percentage change in tourist flows all got a significant influence to the changes in tourism flows. After using the information provided by the OECD database regarding the structure (limited) of tourism flows we have found that the only significant variable to the changes of tourism flows is the changes in GDP per capita of the countries from which the tourist arrive. GDP per capita in the country to which the tourist arrive and all of the other egzogenous variables mentioned above do not seem to have a significant impact to the changes to tourist arrivals.
 
 \vspace{\baselineskip}
 \noindent\textbf{Key words :}
@@ -309,7 +310,7 @@ From these figures it is clear to see that every country can benefit from an inc
 
 According to WTTC (World Travel and Tourism Council), the outlook for the Travel & Tourism sector in 2017 remains robust and will continue to be at the forefront of wealth and employment creation in the global economy, despite the emergence of a number of challenging headwinds. Travel & Tourism forecasts over the next ten years also look extremely favourable with predicted growth rates of 3.9% annually `r Cite(bib, 'WTTC', .opts = list(cite.style = "numeric"))`. 
 
-```{r receipts, echo=F, fig.cap="Tourist receipts in the Western countries (World Bank data)", fig.height=5, fig.width=6,  fig.pos="!ht", fig.align="center"}
+```{r receipts, echo=F, fig.cap="Tourist receipts in the Western countries (World Bank data)", fig.height=4, fig.width=5,  fig.pos="!ht", fig.align="center"}
 
 receipts <- receipts %>% rename(c("ï..Country.Name" = "CountryName", "Indicator.Name" = "Product"))
 receipts <- receipts[receipts$CountryName %in% countries, ]
@@ -335,6 +336,33 @@ and countries safer, but are hindering economic growth, job creation and toleran
 Furthermore, a report by the World Bank `r Cite(bib, 'WB', .opts = list(cite.style = "numeric"))` concludes that tourism provides opportunities for economic diversification and skills upgrading. The tourism sector provides a means by which local entrepreneurs can experiment with new products and test them on international markets in their home country before exporting. International tourists typically create demand for products and services which may not have already existed in the local market and also demand certain quality standards. Whilst these can be a challenge to meet in the short-term, tourism creates the market and the incentive to drive the process – leading to growth and improvement over time. 
 
 We can see that countries benefit from tourism flows both economically and socially. In this paper we want to find which economic and social variables significantly influence or have no effect on the tourism flows to help governments in deciding which policies to adapt in order to grow the tourism sector. 
+
+
+
+\newpage
+
+\section{Literature review and motivation}
+
+Along with the phenomenal growth in the overall tourism flows in the world over the past two decades the interest in research for tourism is growing rapidly also. Being one of the important areas in tourism research, tourism demand (or tourism flows) modelling and forecasting has attracted much attention of both academics and practitioners. According to Song and Li `r Cite(bib, 'Studies1', .opts = list(cite.style = "numeric"))` in the articles published from 2000 to 2007 regarding tourism flows out of 121 studies regarding econometric modelling 72 times time-series methods were used. This means that the authors most often use the lags of the tourism flows to help in explaining the tourism demand. The dominant choices were ARIMA, SARIMA, VAR and neural network models. For example, Otieno, Munguatu and and Orwa `r Cite(bib, 'SARIMA', .opts = list(cite.style = "numeric"))` analyzed tourism accommodation demand in Kenya from the year 1974 to 2011 and found that the best model that fits the demand is SARIMA (1,1,2)(1,1,1)[4] model and it showed the best results when forecasting the future toursim flows.  But in order to only rely on the time series itself in order to build a model one must have quite a substantial amount of data points and the frequency of the data must be at least quarterly (to help identify the seasonality, etc.). Additionally, time series modelling methods rely on the assumption that the data is stationary or can be made stationary with differentiation. But the real world data is often quite complex and chaotic thus making it difficult for typical time series methods to give proper results.
+
+According to Song and Li "panel data analysis has some advantages over the timeseries econometric models. It incorporates much richer information from both time-series and cross-sectional data". Furthermore, when working with data with a low number of time periods (as is often the case with annual data) but having a relatively big number of respondents (typically countries) the advantages of using structural or panel models are evident. Altough in the study which was conducted by Song and Li only 4 articles out of 121 featured panel models. This can be explained by the fact that there is a lack of theoretical foundations into how economic growth (and all of associated variables) influence the tourism flows (and vice versa) `r Cite(bib, 'Studies2', .opts = list(cite.style = "numeric"))`. 
+
+Putting asside the economic theory behind the factors of tourism flows the usage of panel models in trying to explain tourism demand is growing. According to Seetaram and Petit this is because from the later half of the past decade in addition to static fixed and random effects models, the dynamic panel models have given meaningful results. Cortez Jimenez `r Cite(bib, 'example1', .opts = list(cite.style = "numeric"))` analyzed the impact of tourism to economic growth of Spain (using GDP per capita as a proxy variable) and found that tourism flows has a significant impact to the long-term economic growth of the mediterranean region of Spain while the inland region suffered a negative impact from tourism flows. 
+
+Another example of the implementation of the panel models is a study by Soukiazis and Proancea (2008) whom conducted an analysis of tourism and economic growth relationship in Portugal's regions and concluded that a 0.01 percent increase in GDP per capita would lead to an increase of about 1 percent of total bed capacity (hotel accommodations) in the surveyed regions. 
+
+The dissadvantages of the panel data analysis comes from the data itself. As is noted by Kitamura `r Cite(bib, 'example1', .opts = list(cite.style = "numeric"), after=" , pp. 127")`  
+
+1. Respondents may find it cumbersome to regularly participate in the same survey, which results in increasing non-response.
+2. Attrition or dropout rate from the sample can be high.
+3. Overtime the accuracy of data collection may decline. This is known as ‘panel
+fatigue’.
+4. The response of individuals may be influence by their responses from previous
+participations. 
+
+This is indeed an issue when working with micro data - surveys, data collected from small provinces or regions and so forth. But data which is gathered by big organizations like the World Bank, OECD or the statistics departments of the countries which were mentioned in the introduction does not suffer from this problem. Altough another downfall is that in the latter case the data may be too much aggregated. 
+
+Given that the macro annual data which is publicly available does not feature the disadvantages from Kitamura's list and that in order to construct a panel model one does not need high frequency data we have chosen the panel models in order to help determine the biggest factors to tourism flows in the Western world. Additionally this thesis emphasizes the need to determine the relationship between the tourism flows and economic variables and not to forecast it thus we favour panel models over the time series ones.
 
 For this paper only public and free data is used which is strongly aggregated. This could mask some significant variables. It is strongly believed that using not public data that has a very thorough structure of the tourist arrivals the task of finding influential variables to toursim flows would be more straightforward. Nonetheless, the data from the OECD and World Bank's databases have annual cross-sectional data for the countries mentioned above which enables us to use various econometric tools in order to find significant variables to help explain the tourism flows.  
 
@@ -372,7 +400,7 @@ plot(p)
 
 From figure 2 we can clearly see that the overal sum of tourist arrivals through the years is increasing rapidly. 
 
-The aim of this paper is to create a model to help explain the total number of arrivals of tourists to a given OECD country. There are several factors influencing the tourism market in general `r Cite(bib=bib, 'factors', .opts = list(cite.style = "numeric"))`:
+The aim of this paper is to create a model to help explain the total number of arrivals of tourists to a given country which was mentioned in the introduction. There are several factors influencing the tourism market in general `r Cite(bib=bib, 'factors', .opts = list(cite.style = "numeric"))`:
 
 $\bullet$ Environmental factors 
 
@@ -388,13 +416,13 @@ In this paper we will focus more on the socio-economic ones, because they in gen
 
 Accessibility is an important socio-economic variable. All tourist centers must be easily accessible by various modes of transportation like roads, railways, air and water. To reflect accessibility the investments to inroad infrastructure ($Investment$) variable is used.
 
-Another big influencer to tourism are the various attraction sites in a given country: ranging from big ones like amusement parks, natural wonder sites to the small ones like coffehouses, restaurants. All of these businesses have to be maintained and a big factor are the taxes on these services. As a reflection of how governments help or not in increasing the tourism flows to these businesses  the taxes on goods and services ($tax$) variable is used. Also, the overall economic state of a country has a strong correlation with the amount of new shops, hotels and other attractions that can be opened in a given country. As a proxy for the overall state of a country GDP per capita ($GDP$) variable is used. Also, a better economic state of a country means that there are more ancillary services: banking and finance, internet and telecom connectivity, hospitals, insurance and so on. Adding to the socio-economic variables it can be argued that the more hours are worked in a country means more services that could be provided for the tourists. To measure this we will use the annual average hours worked variable ($hours worked$).  
+Another big influencer to tourism are the various attraction sites in a given country: ranging from big ones like amusement parks, natural wonder sites to the small ones like coffehouses, restaurants. All of these businesses have to be maintained and a big factor are the taxes on these services. As a reflection of how governments help or not in increasing the tourism flows to these businesses  the taxes on goods and services ($tax$) variable is used. Also, the overall economic state of a country has a strong correlation with the amount of new shops, hotels and other attractions that can be opened in a given country. As a proxy for the overall state of a country GDP per capita ($GDP$) variable is used. Also, a better economic state of a country means that there are more ancillary services: banking and finance, internet and telecom connectivity, hospitals, insurance and so on. Adding to the socio-economic variables it can be argued that the more hours are worked in a country positively influence the number of services that could be provided for the tourists. To measure this we will use the annual average hours worked variable ($hours worked$).  
 
-Additional variable that may influence tourism in the Western countries may be terrorism. At least in the Islamic countries, in the country where the attack took place, one additional fatal incident is predicted to reduce the tourist flow from the country of the main victims by 4.2 per cent in the same year and by 7.4 per cent in the subsequent one `r Cite(bib=bib, 'terror.absolute', .opts = list(cite.style = "numeric"))`.
+Additional variable that may influence tourism in the Western countries is terrorism. At least in the Islamic countries, in the country where the attack took place, one additional fatal incident is predicted to reduce the tourist flow from the country of the main victims by 4.2 per cent in the same year and by 7.4 per cent in the subsequent one `r Cite(bib=bib, 'terror.absolute', .opts = list(cite.style = "numeric"))`.
 
-There is also the so called the spill-over effect:
+There is also the so called spill-over effect:
 
-If nationals from a certain country, the UK for example, have become victims of fatal terrorist incidents in an Islamic country, such as Tunisia for example, this also affects tourism from the UK to other Islamic countries, such as Egypt. Thus, one additional incident in which British citizens were the main victims in one Islamic destination is predicted to reduce the tourist flow from the UK to another Islamic country by 3.8 per cent in the same year and by 3.7 per cent in the next one `r Cite(bib=bib, 'terror.absolute', .opts = list(cite.style = "numeric"))`.  The terrorist attacks variable was taken from the Department of Homeland Security Center of Excellence led by the Maryland University's database and we will test the hypothesis whether percentage changes in terror attacks have a significant impact to percentage changes in tourist arrivals in the Western countries.
+If tourists from a certain country, Germany for example, have become victims of fatal terrorist incidents in an Islamic country, such as Tunisia for example, this also affects tourism from Germany to other Islamic countries, such as Egypt. Thus one incident involving nationals from Germany has a significant negative effect to the tourism flows to all of the Islamic countries `r Cite(bib=bib, 'terror.absolute', .opts = list(cite.style = "numeric"))`.  The terrorist attacks variable was taken from the Department of Homeland Security Center of Excellence led by the Maryland University's database and we will test the hypothesis whether percentage changes in terror attacks have a significant impact to percentage changes in tourist arrivals in the Western countries and if the spill-over effect is evident.
 
 Taking into account all of this information we will try to find the function \textbf{f} in the equation:
 
@@ -402,7 +430,7 @@ Taking into account all of this information we will try to find the function \te
 log(A)_{it}  = \textbf{f}(\Delta log(GDP)_{it}, \Delta terror_{it}, \Delta log(hours)_{it}, \Delta tax_{it}, \Delta Investment)
 \]
 
-Here 
+Where
 
 $A_{it}$ - total number of arrivals to a country i at time period t, thousands
 
@@ -422,7 +450,7 @@ All of these variables are available for France, United Kingdom, USA, Canada, Ge
 
 \newpage
 
-\subsection{Gross domestic product per capita}
+\subsection{Variable analysis}
 
 The variable $GDP$ is chosen to reflect the economic situation and the standart of living in a given country. GDP per capita is calculated by taking the total output of a country and dividing it by the number of people in the country. The division by the number of people helps us to compare economies between countries. 
 
@@ -498,7 +526,7 @@ for(cn in unique(pdata$Country)[1:4]){
 
 Figure 5 gives a more clear picture. Percentage changes in GDP per capita is significant for Austria from the 4 countries that are visualized. Panel models will help to tell that if GDP per capita is a significant variable for the whole group of countries and not for certain ones.   
 
-All of the scatterplots for the economic variable mentioned above and the ones mentioned at the start of the section is added to the section "Scatter diagrams".
+All of the scatterplots for the economic variable mentioned above and the ones mentioned at the start of the section are added to the section "Scatter diagrams".
 
 \newpage
 
@@ -510,7 +538,7 @@ Panel data provides information on individual behaviour, both across individuals
 
 \[
 \tag{1}
-  y_{it} = \alpha_{i} + \beta X_{it} + u_{it}
+  y_{it} = \alpha_{i} +  X_{it} \beta + u_{it}
 \]
 
 The difference from a typical reggression model is that there are the $i$ and the $t$ terms, where $i$ denotes the individual and $t$ denotes the time period. The construction of a panel model starts with appropriately 'stacking' the data set. Assuming that y is the dependant variable and X is the matrix of the explanatory variables we need to have the following structure  `r Cite(bib, 'econometric.methods', .opts = list(cite.style = "numeric"), after=" , pp. 388")`: 
@@ -549,7 +577,7 @@ The difference from a typical reggression model is that there are the $i$ and th
 \end{bmatrix}
 \]
 
-Here
+Where
 
 \[
 y_{i} = \begin{bmatrix}
@@ -574,10 +602,11 @@ kable(head(pdata), format = "latex", row.names = F)
 
 ```
 
+\newpage
 
 \subsection{Unit roots}
 
-Before modelling we need to check whether there are unit roots in our data set. We will use the \textit{purtest()} function to check for this. This function implements the Maddala and Wu test.
+Before modelling we need to check whether there are unit roots in our data set. We do this because the presence of a unit root can dramatically effect the asymptotic properties of the coefficients gotten from panel models. Also the test results for variable significance may be misleading `r Cite(bib, 'Unit.roots', .opts = list(cite.style = "numeric"), after=" , pp. 3")`. We will use the \textit{purtest()} function to check for this. This function implements the Maddala and Wu test.
 
 ```{r adf data, echo=F, warning=F, comment=NA}
 
@@ -638,13 +667,13 @@ kable(result.table, format = "latex", row.names = F, digits = 5)
 
 \end{center}
 
-The alternative hypothesis for the test is that the data does not have a unit root. All values in the table are much lower than 0.05. According to the tests no variable has a unit root.  
+The alternative hypothesis for the test is that the data does not have a unit root. All values in the table are much lower than 0.05. According to the tests no variable has a unit root. This is highly expected because all of the variables are differenced which is a standart procedure to insure the elimination of the unit roots from the data. 
 
 \newpage
 
 \subsection{Pooling estimator}
 
-The first model which we will be examining will be the simple OLS model which ignores the panel data structure. The equation is then:
+The first model which is examinied is the simple OLS model which ignores the panel data structure. The equation is then:
 
 \[
 y = \alpha + X \beta + \epsilon
@@ -670,7 +699,7 @@ print(tab, type="latex", floating = T, only.contents = F, comment = F)
 
 We can use this model to inspect the residuals and remove some outliers from our data set. The residuals can be inspected in figure 6. We will remove all the points that are above the blue line in the cook's distance plot.
 
-```{r cooks distance initiale, echo=F, fig.cap="Residuals", fig.height=7, fig.width=7,  fig.pos="h"}
+```{r cooks distance initiale, echo=F, fig.cap="Residuals", fig.height=6, fig.width=7,  fig.pos="h"}
 
 par(mfrow=c(2, 1))  
 plot(model.ols, 4, col="salmon1", lwd=2)
@@ -701,7 +730,7 @@ tab <- xtable(summary(model.ols)$coef, digits=c(3, 3, 3, 3, 3), caption = "OLS m
 print(tab, type="latex", floating = T, only.contents = F, comment = F)
 ```
 
-Table 3 represents the final linear model without the outliers and the insignificant variables. The problem with this model is that while giving consistent estimators, the standart errors of those estimators will be understated. Also, OLS is not efficient compared to the generalized least-squares procedure  `r Cite(bib, 'econometric.methods', .opts = list(cite.style = "numeric"), after=" , pp. 391")`.
+Table 2 represents the final linear model without the outliers and the insignificant variables. 
 
 \newpage
 
@@ -737,7 +766,7 @@ Now since $\overline{\alpha_{i}}$ is just $\alpha_{i}$ then the above equations 
 
 $$\dot{y} := y_{it} - \overline{y_{i}} = \left(X_{it} -  \overline{X_{i}}\right) \beta + \left( \epsilon_{i}  - \overline{\epsilon_{i}}\right) =: \dot{X} \beta_{FE} + \dot{\epsilon}$$
 
-To obtain the estimate $\widehat{\beta_{FE}}$ we simply run an OLS procedure to the equation above. The estimator $\widehat{\beta_{FE}}$ is often called the within estimator. Any procedure that eliminates the term $\alpha_{i}$ can be called a $\textit{within transformation}$. To obtain the $alpha_{i}$ for every $i$ we simply match the intercept coordinates that is estimated by running the reggresion for the demeaned data with the way the data was stacked. 
+To obtain the estimate $\widehat{\beta_{FE}}$ we simply run an OLS procedure to the equation above. The estimator $\widehat{\beta_{FE}}$ is often called the within estimator. Any procedure that eliminates the term $\alpha_{i}$ can be called a $\textit{within transformation}$. To obtain the $\alpha_{i}$ for every $i$ we simply match the intercept coordinates that is estimated by running the reggresion for the demeaned data with the way the data was stacked. 
 
 \newpage
 
@@ -756,7 +785,7 @@ print(tab, type="latex", floating = T, only.contents = F, comment = F)
 
 ```
 
-As we can see from table 3 the coefficients have a simmilar signs to them as in the OLS case. The only significant variable is the average hours worked variable. One percent increase would lead to an increase of about the same amount in tourist arrivals.
+As we can see from table 3 the coefficients have a simmilar signs to them as in the OLS case. The significant variables are the average hours worked and taxes. 
 
 After dropping the insignificant variables we have:
 
@@ -774,15 +803,7 @@ print(tab, type="latex", floating = T, only.contents = F, comment = F)
 
 ```
 
-The final panel fixed effects model is presented in table 4. We will leave the variable regarding terror attacks altough it has a high p value (>0.1) because it is much lower than in the typical OLS case (table 2). According to this model, one additional terror attack would lead to a decrease of tourist arrivals by 0.01 percent. A one percent increase to annual hours worked would lead to a 1.02 percent increase of tourist arrivals and one percent increase to taxes on goods and services would lead to a decrease of about 0.9 percent of the tourists. 
-
-Applying the F test for individual effects gives the result:
-
-```{r pFtest, echo=T, comment=NA}
-  pFtest(model.fixed, ols.model)
-```
-
-According to these results the fixed effects model is not significantly better in explaining the number of arrivals compared to the OLS model.
+The final panel fixed effects model is presented in table 4. We will leave the variable regarding terror attacks altough it has a high p value (>0.1) because it is much lower than in the typical OLS case (table 1). According to this model, one additional terror attack would lead to a decrease of tourist arrivals by 0.02 percent. A one percent increase to annual hours worked would lead to a 1.02 percent increase of tourist arrivals and one percent increase to taxes on goods and services would lead to a decrease of about 0.9 percent of the tourists. 
 
 ```{r estimating ols and fixed model fits, echo=F, comment=NA}
   
@@ -811,34 +832,6 @@ According to these results the fixed effects model is not significantly better i
 
 ```
 
-
-```{r visualizing the differences between fits, echo=F, fig.cap="OLS and fixed effects model comparison", fig.height=6, fig.width=8,  fig.pos="!ht", fig.align="center"}
-  
-fdt <- pdata[, c("Country", "Date", "Total.Arrivals", "fc.fixed.effect", 'fc.OLS')]
-# fdt$Total.Arrivals  <- exp(fdt$Total.Arrivals)/1000
-# fdt$fc.fixed.effect <- exp(fdt$fc.fixed.effect)/1000
-# fdt$fc.OLS          <- exp(fdt$fc.OLS)/1000
-fdt$Date <- fdt$Date %>% as.character() %>% as.numeric()
-
-## we will plot 4 countries in order to have a clear picture
-cn <- c( "United States",  "Austria", "France", "Spain")
-points <- data.frame()
-
-par(mfrow=c(2,2))
-for(cc in cn){
-  
-  tmp <- fdt[fdt$Country==cc, ]
-  points <- tmp[, c("Total.Arrivals", "fc.fixed.effect", 'fc.OLS')]
-  
-grid.frame(x=as.numeric(tmp$Date), y=points)
-  matplot(x=as.numeric(tmp$Date), y=points, lwd=1, lty=1, cex=1.25, pch=20, xlab="Time", ylab="Arrivals, thousands", add = T, type="o",
-        col=c('salmon1', "firebrick1", 'cornflowerblue'))
-  legendary2(c("Original", "Fixed effect fit", "OLS fit"), col=c('salmon1', "firebrick1", 'cornflowerblue'))
-  mtext(cc, col="blueviolet", line=2, cex=1.25, adj = 0)
-}
-
-```
-
 \newpage
 
 \subsection{Statistics for accuracy}
@@ -858,7 +851,7 @@ MAE = \dfrac{1}{n}  \sum_{i=1}^{n}\left| y - \widehat{y} \right|
 MAPE = \dfrac{100}{n}  \sum_{i=1}^{n}\left| \dfrac{y - \widehat{y}}{y} \right| 
 \]
 
-Here
+Where
 
 $\widehat{y}$ - fitted value
 
@@ -911,7 +904,34 @@ print(tab, type="latex", floating = T, only.contents = F, comment = F)
 
 \end{center}
 
-As we can see from table 5 and the statistics for accuracy table the fixed effects models' predictions are closer to the original values. Note that we have dropped the MAPE statistic because we are measuring percentage changes and the statistic would give misleading results.
+As we can see from table 5 the fixed effects models' predictions are closer to the original values. Note that we have dropped the MAPE statistic because we are measuring percentage changes and the statistic would give misleading results.
+
+<!-- # ```{r visualizing the differences between fits, echo=F, fig.cap="OLS and fixed effects model comparison", fig.height=6, fig.width=8,  fig.pos="!ht", fig.align="center"} -->
+<!-- #    -->
+<!-- # fdt <- pdata[, c("Country", "Date", "Total.Arrivals", "fc.fixed.effect", 'fc.OLS')] -->
+<!-- # # fdt$Total.Arrivals  <- exp(fdt$Total.Arrivals)/1000 -->
+<!-- # # fdt$fc.fixed.effect <- exp(fdt$fc.fixed.effect)/1000 -->
+<!-- # # fdt$fc.OLS          <- exp(fdt$fc.OLS)/1000 -->
+<!-- # fdt$Date <- fdt$Date %>% as.character() %>% as.numeric() -->
+<!-- #  -->
+<!-- # ## we will plot 4 countries in order to have a clear picture -->
+<!-- # cn <- c( "United States",  "Austria", "France", "Spain") -->
+<!-- # points <- data.frame() -->
+<!-- #  -->
+<!-- # par(mfrow=c(2,2)) -->
+<!-- # for(cc in cn){ -->
+<!-- #    -->
+<!-- #   tmp <- fdt[fdt$Country==cc, ] -->
+<!-- #   points <- tmp[, c("Total.Arrivals", "fc.fixed.effect", 'fc.OLS')] -->
+<!-- #    -->
+<!-- # grid.frame(x=as.numeric(tmp$Date), y=points) -->
+<!-- #   matplot(x=as.numeric(tmp$Date), y=points, lwd=1, lty=1, cex=1.25, pch=20, xlab="Time", ylab="Arrivals, thousands", add = T, type="o", -->
+<!-- #         col=c('salmon1', "firebrick1", 'cornflowerblue')) -->
+<!-- #   legendary2(c("Original", "Fixed effect fit", "OLS fit"), col=c('salmon1', "firebrick1", 'cornflowerblue')) -->
+<!-- #   mtext(cc, col="blueviolet", line=2, cex=1.25, adj = 0) -->
+<!-- # } -->
+<!-- #  -->
+<!-- # ``` -->
 
 \newpage
 
@@ -975,7 +995,7 @@ mtext("Fixed effects model residuals", col="cornflowerblue", line=1, cex=1.25, a
 
 ```
 
-As we can see in figure 8 the residuals visually look very similar. 
+As we can see in figure 7 the residuals visually look very similar. 
 
 ```{r distribution of residuals, echo=F, fig.cap="Distribution of the residuals", fig.height=6, fig.width=8,  fig.pos="!ht", fig.align="center"}
   
@@ -997,9 +1017,72 @@ qqline(res.fixed)
 
 ```
 
-Figure 9 shows the histogram and the quantile to quantile plot of the residuals. In both cases, the residuals appear to follow a bell - shaped curve which implies normality. Altough the q q plots show that the residuals have heavy tails. This can be expected because real life data very often is not 'clean' enough to give normally distributed errors. 
+Figure 8 shows the histogram and the quantile to quantile plot of the residuals. In both cases, the residuals appear to follow a bell - shaped curve which implies normality. Altough the q q plots show that the residuals have heavy tails. This can be expected because real life data very often is not 'clean' enough to give normally distributed errors. 
 
-Both the random effects models and fixed effects models are not satisfactory because of the residuals, low R - square and the fitted values. Additionally, the random effect models' underlying assumption of $\alpha_{i}$ not beeing correlated with the explanatory variables is often not true. In the next section we will switch to a dynamic panel model.
+\newpage
+
+\subsection{Autocorrelation}
+
+Recall that one of the assumptions for a "good" panel model - whether it is fixed or random effects - is that the residualls are not auto-correlated. To test this we can fit an ARIMA (autoregresive integrated moving average) model to the residuals and inspect the results. Additionally we can inspect the auto-correlation functions' (ACF) plot or use the Ljung-Box test for autocorrelation in the series.
+
+```{r arima for residuals, echo=F, fig.cap="Autocorrelation of the residuals", fig.height=4, fig.width=7,  fig.pos="!ht", fig.align="center"}
+
+par(mfrow=c(1,2))
+
+res.random <- residuals(model.random)
+res.fixed  <- residuals(model.fixed)
+  
+arima.random <- auto.arima(res.random)
+arima.fixed  <- auto.arima(res.fixed)
+
+acf(res.random, main="Random effects model residuals")
+acf(res.fixed, main="Fixed effects model residuals")
+
+```
+
+Looking at figure 9 we can see that random effects residuals correlate with the first lag of itself. The $auto.arima ()$ function gives the results that the residuals of the random effects models is an ARIMA (1, 0, 0) process. Finally, the Ljung-Box test's p - value is lower than 0.05 thus meaning that the residuals of the fixed effects model are autocorrelated thus the model does not satisfy the assumptions of the panel models. 
+
+The fixed effects' model residuals do not resemble autocorrelation while looking at figure 9. Altough the Ljung-Box test suggests that the residualls are correlated with the 5th lag of itslef. The $auto.arima ()$ function suggests that the residuals is an ARIMA (1, 0, 2) process.
+
+Both the random effects models and fixed effects models are not satisfactory because of the residuals. The failure to meet the fixed effect and random effects theoretical assumptions may give misleading results. Additionally, the random effect models' underlying assumption of $\alpha_{i}$ not beeing correlated with the explanatory variables is often not true. 
+
+\newpage
+
+\subsection{General FGLS models}
+
+In order to avoid the autocorrelation in the residuals to have a negative impact in the model results we may use the robust FGLS (feasible generalized least squares) panel models. General FGLS estimators are based on a two-step estimation process: first an ols model is estimated, then its residuals are used to estimate an error covariance matrix more general than the random effects of the fixed effects one for use in a feasible-gls analysis `r Cite(bib, 'FGLS.info', .opts = list(cite.style = "numeric"), after=" , pp. 25")`. The function $pggls ()$ implements this procedure in R. In this section we will drop the assumption that $\alpha_{i}$ does not correlate with $X$ matrix hence we will not analyse random effects models. 
+
+```{r pggls models, include=FALSE, echo=F}
+
+model.fixed.gg  <- pggls(formula = Total.Arrivals ~ Terror.attacks + gdp + tax + hours.worked + Investment, data=pdata, model="within")
+
+```
+
+```{r, results='asis', echo=F, warning=F}
+
+tab <- xtable(summary(model.fixed.gg)$CoefTable, digits=c(4, 4, 4, 4, 4), caption = "Fixed effects model (robust)")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
+
+```
+
+After taking in the consideration the economic logic we get the final robust model:
+
+```{r pggls models final, include=FALSE, echo=F}
+
+model.fixed.gg  <- pggls(formula = Total.Arrivals ~ Terror.attacks+ tax + hours.worked, data=pdata, model="within")
+
+```
+
+```{r, results='asis', echo=F, warning=F}
+
+tab <- xtable(summary(model.fixed.gg)$CoefTable, digits=c(4, 4, 4, 4, 4), caption = "Final fixed effects model (robust)")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
+
+```
+
+According to this model, one terrorist attack would lead to a decline of about 0.02 percent of tourist flows. A one percent increase in taxes would lead to a decline of 1.1 percent of tourist arrivals. One percent increase in annual hours worked would increase the tourism flows by about 1.17 percent. The R-squared for the model is 0.33. As we can see from table's 9 p value collumn the coefficients have changed drastically. This is because the distribution by which the hypothesis for variable significance is tested is different from the one used in the $plm ()$ function and when calculating the standart errors the bias of residual autocorrelation is corrected.
+
+From this section onward panel models will be created using the FGLS procedure. 
 
 \newpage
 
@@ -1008,15 +1091,15 @@ Both the random effects models and fixed effects models are not satisfactory bec
 
 In this section we will be creating a dynamic panel model (we will include lags of the variables). First of all, the estimation of the coefficient $\delta$ in the equation:
 
-$$ y_{it} = \delta y_{it - 1} + \beta X_{it} + \alpha_{i} + \epsilon_{it} $$
+$$ y_{it} = y_{it - 1} \delta  +  X_{it} \beta + \alpha_{i} + \epsilon_{it} $$
 
-is not as straightforward as just adding another collumn to the regressor matrix with the lagged variable $y_{it}$. This is because the OLS estimate will be biased. This is because the $y_{it}$ is a function $\epsilon_{it}$ and thus so is $y_{it-1}$ giving us the multicolinearity problem. 
+is not as straightforward as just adding another collumn to the regressor matrix with the lagged variable $y_{it}$. This is because the OLS estimate will be biased. This occurs becasue of the fact that the $y_{it}$ is a function $\epsilon_{it}$ and thus so is $y_{it-1}$ giving us the multicolinearity problem. 
 
 Consider the simple model:
 
 $$y_{it} = \delta y_{it - 1}+ \alpha_{i} + \epsilon_{it}$$
 
-Taking the first differences we get rid of the individual effecct $\alpha_{i}$:
+Taking the first differences we get rid of the individual effect $\alpha_{i}$:
 
 $$\Delta y_{it} = y_{it} - y_{it - 1} = \delta y_{it-1} + \alpha_{i} + \epsilon_{it} - \delta y_{it - 2} - \alpha_{i} - \epsilon_{it-1} = \delta (y_{it-1} - y_{it-2}) + \epsilon_{it} - \epsilon_{it-1} $$
 The classic method to deal with multicolinearity is to find an instrumental variable that correlates with the endogenous variable and not with the residuals. Starting from time period t = 3:
@@ -1029,7 +1112,7 @@ When t = 4:
 $$\Delta y_{i4} = y_{i4} - y_{i3} = \delta (y_{i3} - y_{i2}) + (\epsilon_{i4} - \epsilon_{i3}) $$
 Both the $y_{i1}$ and ${y_{i2}}$ are good options. Going forward up to time period T we have the instrument vector:
 
-$$(y_{i1}, y_{i2}, ..., y_{iT- 2})$$. If there are strictly exogenous variables in our system $x_{it}$ that correlate with the endogenous variable and not with the residuals they should also be included in the weight matrix diagonals (for a detailed proof `r Cite(bib, 'dynamic.panel', .opts = list(cite.style = "numeric"))`):
+$$(y_{i1}, y_{i2}, ..., y_{iT- 2})$$. If there are strictly exogenous variables in our system $x_{it}$ that correlate with the endogenous variable and not with the residuals they should also be included in the weight matrix diagonals (for a detailed proof see `r Cite(bib, 'dynamic.panel', .opts = list(cite.style = "numeric"))`):
 
 
 $$W_{i} = \begin{pmatrix}
@@ -1058,7 +1141,7 @@ tab <- xtable(summary(model.dynamic)$coef, digits=c(4, 4, 4, 4, 4), caption = "D
 print(tab, type="latex", floating = T, only.contents = F, comment = F)
 ```
 
-After trying various lags and taking into account the economic logic behind the model we get the results in table 8. The dynamic model shows that terror attacks has a significant influence to tourist arrivals. One additional terror attack would decrease the total number of tourist arrivals by 0.02 percent. The hours worked and the tax variables are also significant with a simillar absolute value as in the fixed effects or the random effects case. An additional significant variable is the lag of the changes in total arrivals. A positive increase in the lags of tourist arrivals will have a positive change to the present change of tourist arrivals. 
+After trying various lags and taking into account the economic logic behind the model we get the results in table 10. The dynamic model shows that terror attacks has a significant influence to tourist arrivals. One additional terror attack would decrease the total number of tourist arrivals by 0.01 percent. The hours worked and the tax variables are also significant with a simillar absolute value as in the fixed effects or the random effects case. An additional significant variable is the lag of the changes in total arrivals. A positive increase in the lags of tourist arrivals will have a positive change to the present change of tourist arrivals. 
 
 \newpage
 
@@ -1087,23 +1170,30 @@ As we can see in figure 10 the residuals resemble a simmilar pattern as in the c
 
 \subsection{Conclusion of panel data models' analysis}
 
-Based on the data and using static random effects ant fixed effects panel models we can conlude that the only significant variables to tourist arrivals' changes is changes to the average hours worked in a given country and the changes to taxes on goods and services. This can be explained that more hours worked and lower taxes would lead to more bussinesses and hence an increase in tourist attractions in a given country. On average, a one percent increase in hours worked would lead to an increase of 1 percent of tourist arrivals and a one percent increase in taxes to goods and services would decline the number of tourist arrivals by about 0.9 percent. Additionally, terrorist attacks have weak influence to the rate of change of arrivals. One attack would lead to a decrease of about 0.01 of tourists. It would take about 100 additional attacks a year to lover tourist arrivals by 1 percent. Thus its influence is not very high. This can be explainded that the services that prevent terrorism is doing a good job and the relative number of incidents are not that high to prevent tourists from visiting a country.
+Based on the data and using static random effects ant fixed effects panel models we can conlude that the only significant variables to tourist arrivals' changes is changes to the average hours worked in a given country and the changes to taxes on goods. After using the feasible generalized least squares method we have gotten that an additional variable - terrorist attacks - is a significant variable to tourism flows as well. The significance of the hours worked variable can be explained that more hours worked and lower taxes would lead to more bussinesses and hence an increase in tourist attractions in a given country. On average, a one percent increase in hours worked would lead to an increase of 1.17 percent of tourist arrivals and a one percent increase in taxes to goods and services would decline the number of tourist arrivals by about 1.1 percent. Terrorist attacks have weak influence to the rate of change of tourist arrivals. One attack would lead to a decrease of about 0.02 percent of tourist flows. It would take about 50 additional attacks a year to lover tourist arrivals by 1 percent. This can be explainded that the services that prevent terrorism is doing a good job and the relative number of incidents are not that high to prevent tourists from visiting a country.
 
-According to the dynamic model, the lag of one of the rate of change of tourist arrivals is also a significant variable which correlates positivelly with the changes in the present to tourist arrivals. 
+According to the dynamic model, the lag of one of the rate of change of tourist arrivals is also a significant variable which correlates positivelly with the changes in the present to tourist arrivals. A one percent increase to to the present tourism flows would lead to about 0.7 percent increase in tourism flows in the future.
 
 \newpage
 
-\subsection{Structure models}
+\subsection{Decomposition of flows models}
 
-In this section we will be creating a model which uses the structure data that can be obtained from the OECD database. Structure in this section means that there is information not only about total tourist arrivals but total arrivals from certain countries. For example, the United Kingdom's data for the year 2014:
+In this section we will be creating a model which uses a more detailed flows of tourism data between the countries which were analyzed. This data can be obtained from the OECD database. A more detailed flows (or decomposition of flows) in this section means that there is information not only about total tourist arrivals but total arrivals from certain countries. For example, the United Kingdom's data for the year 2014:
+
+\vskip 4pt
+
+\centering
 
 ```{r visualising structure data, echo=F}
 
-kable(struct[struct$Country=="United Kingdom" & struct$Date=="2014", ], format = "latex", row.names = F)
+kable(struct[struct$Country=="United Kingdom" & struct$Date=="2014" & struct$Indicator %in% countries, ], format = "latex", row.names = F)
 
 ```
+\raggedright
 
-The downside is that we lose the cross-sectional panel structure of our data and that there are only available years from 2009 to 2014 (after differentiation). The matrices for linear modelling will be $Y$ and $X$ where:
+\vskip 4pt
+
+The downside is that that there are only available years from 2009 to 2014 (after differentiation). The first model will be the standart linear model. The matrices for linear modelling will be $Y$ and $X$ where:
 
 $Y_{ikt}$ - the total number of arrivals from country k to country i at time period t.
 
@@ -1111,7 +1201,7 @@ $X_{itk}$ - both the domestic and abroad economy's GDP per capita, domestic terr
 
 We will be estimating the $\beta$ in:
 
-$$Y_{itk} = \alpha + \beta X_{itk} + \epsilon$$
+$$Y_{itk} = \alpha +  X_{itk} \beta + \epsilon$$
 
 We will use the OLS procedure:
 
@@ -1161,7 +1251,7 @@ sdt.sub <- ddply(sdt.sub, ~Country + Origin, function(xframe){
     
     Invest <- Inv %>% filter(Country==xframe$Country[1], Date %in% 2008:2014) %>% rename(c("Value" = "Investment"))
     xframe$Investment <- Invest[, "Investment"]
-    
+  
     
     xframe$hours <- c(NA, diff(log(xframe$hours)))
     xframe$gdp.d <- c(NA, diff(log(xframe$gdp.d)))
@@ -1222,7 +1312,7 @@ print(tab, type="latex", floating = T, only.contents = F, comment = F)
 
 ```
 
-As in the case of panel models, the terror attack variable is not significant. What is more interesting that the number of tourist arrivals does not depend on the local economy but rather on the economic states of countries from which there are visitors. A one percent change in GDP of a country from which tourists are arriving leads to an increase of 0.343 percent in positive change to tourist arrivals.
+The terror attacks variable is not significant thus meaning that there is no spill-over effect in the countries which were analyzed. What is more interesting is that the number of tourist arrivals does not depend on the local economy but rather on the economic states of countries from which there are visitors. A one percent change in GDP of a country from which tourists are arriving leads to an increase of 0.343 percent in positive change to tourist arrivals.
 
 \newpage
 
@@ -1244,7 +1334,7 @@ qqline(res)
 
 As we can see from figure 11 we can conclude that the residuals from the structure model graphically look the most normal out of all the models in this analysis so far.
 
-```{r cooks distance, echo=F, fig.cap="Distribution of the residuals", fig.height=7, fig.width=7,  fig.pos="h"}
+```{r cooks distance, echo=F, fig.cap="Inspecting for outliers", fig.height=7, fig.width=7,  fig.pos="h"}
 
 par(mfrow=c(2, 1))  
 plot(model.ols, 4, col="salmon1", lwd=2)
@@ -1275,7 +1365,7 @@ print(tab, type="latex", floating = T, only.contents = F, comment = F)
 
 ```
 
-Eliminating the influential points and re-regressed the model we got that the variable hours is not significant after all. Also we can see that from figure 13 that the residuals are visually normal. The Shapiro-Wilk test's statistic is 0.039 which with alpha level of 0.01 would imply normality.
+Eliminating the influential points and re-regressed the model we got that the variable hours worked is not significant. Also we can see that from figure 13 that the residuals are visually normal. The Shapiro-Wilk test's statistic is 0.039 which with alpha level of 0.01 would imply normality.
 
 ```{r distribution of residuals of final model 2, echo=F, fig.cap="Distribution of the residuals without influential points", fig.height=7, fig.width=7,  fig.pos="h"}
 
@@ -1300,21 +1390,159 @@ print(tab, type="latex", floating = T, only.contents = F, comment = F)
 
 ```
 
-The final structure model is in table 14.
+The final linear model is in table 15.
+
+\newpage
+
+\subsection{Fixed effects panel model for decomposed flows}
+
+In this section we will be creating a panel model for the more detailed data of the tourism flows. In order to do this we will breating a new $\textit{id}$ variable which will be unique to all countries - origin pairs. For example, the head of our data:
+
+```{r decomposed panel data, echo=F, include=FALSE}
+
+sdt <- struct
+sdt <- sdt[!(sdt$Indicator %in% c("Other collective establishments", "Hotels and similar establishments", "Overnight visitors (tourists)", "Total international arrivals", "Same-day visitors (excursionists)", "Nights in all types of accommodation", 
+                                  "Specialised establishments", "Private accommodation")), ]
+
+sdt <- sdt[sdt$Country %in% unique(pdata$Country) & sdt$Indicator %in% unique(gdp$Country), ] %>% rename(c("Value" = "Arrivals", "Indicator" = "Origin"))
+
+sdt <- sdt[sdt$Country %in% countries & sdt$Origin %in% countries, ]
+sdt.sub <- sdt
+sdt.sub <- ddply(sdt.sub, ~Country + Origin, function(xframe){
+  
+  xframe <<- xframe
+  
+  if(dim(xframe)[1] >= 6){
+    
+    ## Adding terror attacks
+    
+    ter <- terror %>% filter(Country==xframe$Country[1], Date %in% 2008:2014)
+    xframe$terror <- ter[, "Terror.attacks"]
+    
+    ## Adding terror abroad
+    
+    ter.a <- terror %>% filter(Country==xframe$Origin[1], Date %in% 2008:2014)
+    if(dim(ter.a)[1]==0){
+      
+      xframe$terror.abroad <- NA
+      
+    } else {
+      
+      xframe$terror.abroad <- ter.a[, "Terror.attacks"]
+    }
+    
+    ## Adding GDP abroad and GDP domestic
+    
+    xframe <- merge(xframe, gdp) %>% rename(c("value" = "gdp.d"))
+    xframe$Indicator <- NULL
+    
+    
+    gdp.a <- gdp %>% filter(Country==xframe$Origin[1], Date %in% 2008:2014) %>% rename(c("value" = "gdp.a"))
+    xframe$gdp.a <- gdp.a[, "gdp.a"]
+    
+    ## Adding hours worked domestic
+
+    h <- hours %>% filter(Country==xframe$Country[1], Date %in% 2008:2014) %>% rename(c("Value" = "hours.worked"))
+    xframe$hours <- h[, "hours.worked"]
+
+    ## Adding hours abroad
+    
+    h <- hours %>% filter(Country==xframe$Origin[1], Date %in% 2008:2014) %>% rename(c("Value" = "hours.worked"))
+    xframe$hours.abroad <- h[, "hours.worked"]
+    
+    ## Adding taxes
+    
+    taxes <- tax %>% filter(Country==xframe$Country[1], Date %in% 2008:2014) %>% rename(c("Value" = "taxes"))
+    xframe$taxes <- taxes[, "taxes"]
+    
+    xframe$Arrivals <- c(NA, diff(log(xframe$Arrivals))) 
+    xframe$terror <- c(NA, diff(xframe$terror)) 
+    xframe$terror.abroad <- c(NA, diff(xframe$terror.abroad)) 
+    xframe$gdp.d <- c(NA, diff(log(xframe$gdp.d))) 
+    xframe$gdp.a <- c(NA, diff(log(xframe$gdp.a))) 
+    xframe$hours <- c(NA, diff(log(xframe$hours))) 
+    xframe$hours.abroad <- c(NA, diff(log(xframe$hours.abroad))) 
+    xframe$taxes <- c(NA, diff(xframe$hours.abroad)) 
+    
+    
+  }
+  
+    return(xframe)
+})
+
+sdt.sub$id <- paste(sdt$Country, "+", sdt$Origin)
+sdt.sub$Origin <- NULL
+sdt.sub$Country <- NULL
+sdt.sub <- sdt.sub[, c("id", "Date", "Arrivals", "terror", "terror.abroad", "gdp.d", "gdp.a", "hours", "hours.abroad", "taxes")]
+
+sdt.sub <- sdt.sub[complete.cases(sdt.sub), ]
+
+model.ols <-  lm(Arrivals ~  terror + terror.abroad + gdp.a + gdp.d + hours + hours.abroad + taxes, data=sdt.sub)
+r <- stdres(model.ols)
+sdt.sub$res <- abs(r)
+sdt.sub <- sdt.sub[sdt.sub$res<2.5, ]
+```
+```{r visualising the new data structure, echo=F}
+
+kable(head(sdt.sub[,1:6]))
+
+```
+
+Note that only 6 first six collumns are displayed. We have a data set of 245 data points and will be creating a model:
+
+$$ Y_{it}= f(terror_{it}, terror.abroad_{it}, gdp.a_{it}, gdp.d_{it}, hours_{it}, hours.abroad_{it}, tax_{it}) + \epsilon_{it} $$
+The variables are the ones which were used up to this point in this thesis:
+
+$gdp$ - the differences of logs of gdp per capita. 
+
+$terror$ - changes in terror attacks. 
+
+$hours$ - changes of logs in the annual mean hours worked
+
+$tax$ - changes in the taxes of goods and services. Note that we will exclude the taxes in abroad countries.
+
+The difference now is that the $Y_{it}$ variable is not a certain country but the pair $destination + origin$ which means that every coordinate of the $Y$ variable is the percentage change of tourism flows from the origin country to the destination country.  
+
+```{r new fied effect, echo=F}
+
+pdata2 <- plm.data(sdt.sub, indexes = c("id", "Date"))
+model.fixed2 <- pggls(Arrivals ~ terror + terror.abroad + gdp.d + gdp.a + hours + hours.abroad + taxes, data=pdata2, 
+                   model = "within")
+
+```
+
+```{r, results='asis', echo=F, warning=F}
+
+tab <- xtable(summary(model.fixed2)$CoefTable, digits=c(3, 3, 3, 3, 3), caption = "Initial fixed effects model with decomposed flows")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
+
+```
+
+```{r final fixed effect, echo=F}
+
+model.fixed2 <- pggls(Arrivals ~ gdp.a, data=pdata2, 
+                   model = "within")
+```
+
+```{r, results='asis', echo=F, warning=F}
+
+tab <- xtable(summary(model.fixed2)$CoefTable, digits=c(3, 3, 3, 3, 3), caption = "Final fixed effects model with decomposed flows")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
+
+```
+
+As we can see from table 19 the only significant variable left is the GDP abroad variable. A one percent increase in the GDP abroad would lead to an increase of 0.17 percent of tourist flows. 
 
 \newpage
 
 \section{All main models}
 
 
-In this thesis 3 main models with cross-sectional panel data were created:
+In this thesis 2 main models with cross-sectional panel data were created:
 
 ```{r all models, results='asis', echo=F, warning=F}
 
-tab <- xtable(summary(model.fixed)$coef, digits=c(4, 4, 4, 4, 4), caption = "Final fixed effects model")
-print(tab, type="latex", floating = T, only.contents = F, comment = F)
-
-tab <- xtable(summary(model.random)$coef, digits=c(4, 4, 4, 4, 4), caption = "Final random effects model")
+tab <- xtable(summary(model.fixed.gg)$CoefTable, digits=c(4, 4, 4, 4, 4), caption = "Final fixed effects model")
 print(tab, type="latex", floating = T, only.contents = F, comment = F)
 
 tab <- xtable(suppressWarnings(summary(model.dynamic)$coef), digits=c(4, 4, 4, 4, 4), caption = "Final dynamic panel data model")
@@ -1323,14 +1551,16 @@ print(tab, type="latex", floating = T, only.contents = F, comment = F)
 
 ```
 
-And the model with structure data:
+Because of the very simmilar coefficient values between these two models but the dynamic model offering an additional variable in the lags of tourism flows we will hold that this is the final model and we will base the conclusions based on it.
+
+The model with the decomposed tourism flows data:
 
 \centering
 
 ```{r all models addition, results='asis', echo=F, warning=F}
 
-tab <- xtable(summary(model.ols)$coef, digits=c(4, 4, 4, 4, 4), caption = "Final OLS model with structure data")
-print(tab, type="latex", floating = F, only.contents = F, comment = F)
+tab <- xtable(summary(model.fixed2)$CoefTable, digits=c(4, 4, 4, 4, 4), caption = "Final fixed effects model with decomposed flows")
+print(tab, type="latex", floating = T, only.contents = F, comment = F)
 
 ```
 
@@ -1340,40 +1570,40 @@ print(tab, type="latex", floating = F, only.contents = F, comment = F)
 
 \section{Conclusion}
 
-Based on random effects, fixed effects, dynamic panel models and linear models:
+Based on the dynamic panel model which was created using public annual data we can make several conclusions on the tourism flows in the Western countries:
 
 $\bullet$ Increasing GDP per capita in a given country does not influence tourist arrivals to that country.
 
-$\bullet$ Percentage change of taxes on goods and services in country i influence the rate of change in tourist arrivals. A 1 percent increase to taxes on goods and services would lead to a decline of about 0.9 percent in tourist arrivals. 
+$\bullet$ Percentage change of taxes on goods and services in country i influence the rate of change in tourist arrivals. A 1 percent increase to taxes on goods and services would lead to a decline of about 1.12 percent in tourist arrivals. 
 
 $\bullet$ Percentage change of investments to infrastructure in country i influence the rate of change in tourist arrivals. But the sign near the coefficient was negative in all of the models which would imply that a positive change in investments would lead to a decline in tourist arrivals. Hence we dropped this variable from our final model. 
 
-$\bullet$ Percentage change in annual hours worked has a significant influence to the percentage change of tourist arrivals. A one percent increase in hours worked annually would increase the tourism flows by about 1.02 percent.  
+$\bullet$ Percentage change in annual hours worked has a significant influence to the percentage change of tourist arrivals. A one percent increase in hours worked annually would increase the tourism flows by about 1.21 percent.  
 
-$\bullet$ The dynamic panel model showed that the lag of one of the rate of change in tourist arrivals has a significant impact to the current rate of tourist arrivals. A one percent increase in tourist arrivals would result in an additional growth of about 0.07 percent of tourist arrivals in the future.  
+$\bullet$ The dynamic panel model showed that the lag of one of the rate of change in tourist arrivals has a significant impact to the current rate of tourist arrivals. A one percent increase in tourist arrivals would result in an additional growth of about 0.07 percent of tourist arrivals in the future. 
 
-Based on the structure data from the OECD data base:
+$\bullet$ Terrorism has a significant but a weak in absolute sense effect to tourism flows. One terror attack in a given country would lead to a decline of 0.012 percent of the tourism flows.
 
-$\bullet$ As in the panel models case, the domestic GDP per capita changes had no significant effect to the percentage changes in tourist arrivals.
+Based on the decomposed data of the tourism flows from the OECD data base:
 
-$\bullet$ The most significant variable regarding the percentage change in tourist arrivals to country i is the percentage change in GDP per capita in abroad countries from whom the tourists come to the country i. A one percent increase in foreign economies leads to about 0.39 percentage increase in tourist arrivals.
+$\bullet$ The domestic GDP per capita changes had no significant effect to the percentage changes in tourist arrivals.
+
+$\bullet$ The most significant variable regarding the percentage change in tourist arrivals to country i is the percentage change in GDP per capita in abroad countries from whom the tourists come to the country i. A one percent increase in foreign economies leads to about 0.17 percentage increase in tourist arrivals.
 
 
 \newpage
 
 \section{Tests}
 
-In this paper there were implemented two tests in order to inspect the panel models: the F test for individual effects and the Haussman test to determine which model - random or fixed effects - is more suitable. 
-
 \subsection{F test}
 
 The f test `r Cite(bib, 'F.test', .opts = list(cite.style = "numeric"), after=" , pp. 3-4")` that is used with the panel models in R statistical package tests the following hypothesis: assume that we have two models: 
 
 restricted
-$$y_{it} = \alpha + \beta X_{it} + \epsilon_{it}$$
+$$y_{it} = \alpha +  X_{it} \beta + \epsilon_{it}$$
 and unrestricted:
 
-$$y_{it} = \alpha + u_{i} + \beta X_{it} + \epsilon_{it}$$
+$$y_{it} = \alpha + u_{i} +  X_{it} \beta + \epsilon_{it}$$
 
 Then the hypothesis is 
 
@@ -1389,7 +1619,7 @@ To test this hypothes we use the F statistic (hence the name of the test):
 
 $$F = \dfrac{(ESS_{R} - ESS_{U})/(N- 1) }{ESS_{U}/((T-1)N- K)}$$
 
-Here 
+Where 
 
 $ESS_{U}$ - error sum of squares of the unrestricted model
 
@@ -1435,6 +1665,33 @@ and
 $$H \overset{asy}{\sim} \chi^2$$
 
 The main idea of this test is that if $Var(\widehat{\beta_{FE}})$ is smaller than  $Var(\widehat{\beta_{RE}})$ it means that the H statistic will be "large" and the null hypothesis will be rejected. This in turn means that $\widehat{\beta_{RE}}$ is no efficient because there exists another statistic with a smaller variance.
+
+\newpage
+
+\subsection{Ljung-Box test}
+
+The Ljung-Box test is used for detecting serial autocorrelation in the series. The test's hypothesis is:
+
+\[\begin{array}{lr}
+       H_{0}: \text{The data is independently distributed} \\
+        H_{1}: \text{The data is not independently distributed; it exhibits serial correlation.},  
+        \end{array}\]
+
+To test this hypothesis the following statistic is used:
+
+$$Q = n(n +2) \sum^{h}_{k=1} \left( \dfrac{\rho^{2}_{k}}{n - k} \right)$$
+
+Where
+
+$rho^{2}_{k}$ - is the sample autocorrelation at lag k.
+
+$n$ - the number of observations.
+
+$k$ - the lag. 
+
+$h$ - number of lags beeing tested.
+
+This statistic (under $H_{0}$) is distributed by the $\tilde{\chi}^2_{h}$ distribution. 
 
 \newpage
 
